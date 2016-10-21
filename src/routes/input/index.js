@@ -1,5 +1,7 @@
 const Boom = require('boom');
 const moment = require('moment');
+const database = require('../../db');
+console.log(database);
 
 function areAllFieldsPresent({sdk, events, app_key, app_version}) {
     return sdk && events && app_key && app_version;
@@ -43,11 +45,12 @@ const trackEvent = {
             return reply(Boom.badRequest('Not all arguments are defined'));
         }
 
-        const trackObject = getFormattedTrackObjects(request.query, getAnalyticsData(request), getUtcTimeStamp());
+        const trackEvents = getFormattedTrackObjects(request.query, getAnalyticsData(request), getUtcTimeStamp());
 
         //save to db, reply
+        database.insertTrackEvents(trackEvents);
 
-        reply({info: request.info, query: request.query, trackObject})
+        reply()
     }
 };
 
