@@ -4,7 +4,16 @@
   "description": "Custom  event tracking analytics",
   "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "start-dev": "./node_modules/.bin/nodemon"
+  },
   "dependencies": {
+    "good": "^7.0.2",
+    "good-console": "^6.1.2",
+    "good-squeeze": "^5.0.0",
     "hapi": "^15.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.11.0"
   }
 }
