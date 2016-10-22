@@ -15,9 +15,11 @@
     "hapi": "^15.2.0",
     "moment": "^2.15.1",
     "mongodb": "^2.2.11",
+    "node-uuid": "^1.4.7",
     "query-string": "^4.2.3"
   },
   "devDependencies": {
+    "chance": "^1.0.4",
     "nodemon": "^1.11.0"
   }
 }

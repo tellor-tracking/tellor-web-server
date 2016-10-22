@@ -1,8 +1,12 @@
-module.exports = function insertWrap(db) {
-    return function insertTrackEvents(events, cb) {
+function getEventsWrap(db) {
+    return function getEvents(cb) {
 
-        const collection = db.db.collection('events');
+        const collection = db.db.collection('eventsFields');
 
-        // find..
+        collection.find({}).toArray(cb);
     }
+}
+
+module.exports = {
+    getEventsWrap
 };

@@ -1,7 +1,6 @@
 const Boom = require('boom');
 const moment = require('moment');
-const database = require('../../db');
-console.log(database);
+const db = require('../../db');
 
 function areAllFieldsPresent({sdk, events, app_key, app_version}) {
     return sdk && events && app_key && app_version;
@@ -47,8 +46,9 @@ const trackEvent = {
 
         const trackEvents = getFormattedTrackObjects(request.query, getAnalyticsData(request), getUtcTimeStamp());
 
+        const t = Date.now();
         //save to db, reply
-        database.insertTrackEvents(trackEvents);
+        db.insertTrackEvents(trackEvents, ()=> console.log(Date.now() - t));
 
         reply()
     }

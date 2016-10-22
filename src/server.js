@@ -7,7 +7,8 @@ const server = new Hapi.Server();
 
 server.connection({port: 3000});
 server.route(routes);
-console.log(routes);
+
+
 server.register({
     register: Good,
     options: {
@@ -29,7 +30,9 @@ server.register({
     if (err) {
         throw err; // something bad happened loading the plugin
     }
+});
 
+module.exports = () => {
     server.start((err) => {
 
         if (err) {
@@ -37,4 +40,4 @@ server.register({
         }
         server.log('info', 'Server running at: ' + server.info.uri);
     });
-});
+};

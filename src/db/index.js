@@ -1,21 +1,39 @@
 const MongoClient = require('mongodb').MongoClient;
+const write = require('./events/write');
+const read = require('./events/read');
+const analyze = require('./events/analyze');
 
 const URL = 'mongodb://localhost:27017';
 
 let database = {};
 
-
-MongoClient.connect(URL, (err, db)=> {
-    if (err) {
-        throw err;
+function connect(cb) {
+    if (database.db !== undefined) {
+        cb && cb();
     }
-    console.log(`MongoDB connected! to ${URL}`);
 
-    database.db = db;
-});
+    MongoClient.connect(URL, (err, db)=> {
+        if (err) {
+            throw err;
+        }
+        console.log(`MongoDB connected! to ${URL}`);
+
+        database.db = db;
+        cb && cb(db);
+    });
+}
+
+function getDb() {
+    return database.db;
+}
 
 module.exports = {
-    insertTrackEvents: require('./events/write')(database)
+    connect,
+    getDb,
+    insertTrackEvents: write.insertTrackEventsWrap(database),
+    getEvents: read.getEventsWrap(database),
+    getEventCounts: analyze.getEventCountsWrap(database),
+    getAllEventsCount: analyze.getAllEventsCountWrap(database),
 };
 
 

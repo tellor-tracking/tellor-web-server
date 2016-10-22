@@ -1,13 +1,18 @@
+const db = require('../../db');
+const Boom = require('boom');
 
-module.exports = {
+const getEvents = {
     path: '/api/events',
     method: 'GET',
     handler(request, reply) {
-        reply({
-            events: [
-                {name: '...', segmentation: ['...', '...', '...'], duration: true, sum: false, description: false}
-            ],
-            meta: ['ip', 'appVersion', '...']
+
+        db.getEvents((err, docs) => {
+            if (err) {
+                return reply(Boom.badImplementation('Failed to retrieve events', err));
+            }
+            reply(docs);
         });
     }
 };
+
+module.exports = [getEvents];
