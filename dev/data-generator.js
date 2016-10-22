@@ -56,5 +56,5 @@ function clearAllCollections() {
 
 }
 
-db.connect(()=> db.insertTrackEvents(getFakeEvents(50000, 25, 60)));
-// db.connect(clearAllCollections);
+ db.connect(()=> db.insertTrackEvents(getFakeEvents(100000, 40, 300)));
+ // db.connect(clearAllCollections);

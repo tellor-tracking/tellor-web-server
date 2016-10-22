@@ -1,14 +1,12 @@
 const MongoClient = require('mongodb').MongoClient;
-const write = require('./events/write');
-const read = require('./events/read');
-const analyze = require('./events/analyze');
+const events = require('./events');
 
 const URL = 'mongodb://localhost:27017';
 
-let database = {};
+let database;
 
 function connect(cb) {
-    if (database.db !== undefined) {
+    if (database !== undefined) {
         cb && cb();
     }
 
@@ -18,22 +16,23 @@ function connect(cb) {
         }
         console.log(`MongoDB connected! to ${URL}`);
 
-        database.db = db;
+        database = db;
         cb && cb(db);
     });
 }
 
 function getDb() {
-    return database.db;
+    return database
 }
 
-module.exports = {
-    connect,
-    getDb,
-    insertTrackEvents: write.insertTrackEventsWrap(database),
-    getEvents: read.getEventsWrap(database),
-    getEventCounts: analyze.getEventCountsWrap(database),
-    getAllEventsCount: analyze.getAllEventsCountWrap(database),
-};
+function provideDb(fnsObj) {
+    for (let key of Object.keys(fnsObj)) {
+        fnsObj[key] = fnsObj[key](()=> database)
+    }
+
+    return fnsObj;
+}
+
+module.exports = Object.assign({connect, getDb}, provideDb(events));
 
 

@@ -55,9 +55,9 @@ function updateFieldsModel(events, db) {
 
 
 // TODO make reference to event stuff by ID, not name
-function insertTrackEventsWrap(dbObj) {
-    return function insertTrackEvents(events, cb) {
-        const db = dbObj.db;
+function insertTrackEvents(getDb) {
+    return function(events, cb) {
+        const db = getDb();
         addGUIDs(events);
 
         db.collection('events').insertMany(events, (err, result) => {
@@ -76,5 +76,5 @@ function insertTrackEventsWrap(dbObj) {
 }
 
 module.exports = {
-    insertTrackEventsWrap
+    insertTrackEvents
 };

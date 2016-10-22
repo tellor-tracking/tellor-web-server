@@ -1,15 +1,15 @@
-function getEventCountsWrap(db) {
-    return function getEventCounts(eventId, cb) {
+function getEventCounts(db) {
+    return function(eventId, cb) {
 
-        const collection = db.db.collection('eventsCounts');
+        const collection = db().collection('eventsCounts');
         collection.findOne({id: eventId}, cb);
     }
 }
 
-function getAllEventsCountWrap(db) {
-    return function getAllEventsCount(cb) {
+function getAllEventsCount(db) {
+    return function(cb) {
 
-        const collection = db.db.collection('eventsCounts');
+        const collection = db().collection('eventsCounts');
         collection.find({}).toArray((err, docs) => {
             if (err) {
                 return cb(err);
@@ -21,6 +21,6 @@ function getAllEventsCountWrap(db) {
 }
 
 module.exports = {
-    getEventCountsWrap,
-    getAllEventsCountWrap
+    getEventCounts,
+    getAllEventsCount
 };
