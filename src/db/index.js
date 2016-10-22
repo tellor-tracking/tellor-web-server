@@ -1,5 +1,6 @@
 const MongoClient = require('mongodb').MongoClient;
 const events = require('./events');
+const applications = require('./applications');
 
 const URL = 'mongodb://localhost:27017';
 
@@ -33,6 +34,6 @@ function provideDb(fnsObj) {
     return fnsObj;
 }
 
-module.exports = Object.assign({connect, getDb}, provideDb(events));
+module.exports = Object.assign({connect, getDb}, provideDb(events), provideDb(applications));
 
 
