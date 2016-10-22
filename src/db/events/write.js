@@ -1,7 +1,7 @@
-const uuid = require('node-uuid');
+const uuid = require('shortid');
 
 function addGUIDs(events) {
-    events.forEach(event => event.id = uuid.v1());
+    events.forEach(event => event.id = uuid.generate());
 }
 
 
@@ -27,7 +27,7 @@ function incrementBasicCounts(events, db) {
             {name: event.name},
             {
                 $inc: constructIncrementObject(event.segmentation, event.meta.timestamp),
-                $setOnInsert: {id: event.id}
+                $setOnInsert: {id: event.id, appId: event.appId}
             },
             {upsert: true}
         )
@@ -46,7 +46,7 @@ function updateFieldsModel(events, db) {
             {name: event.name},
             {
                 $addToSet: {segmentation: {$each: Object.keys(event.segmentation || {})}}, // TODO maybe when segmentation chages, we should simply create new event version?
-                $setOnInsert: {meta: ['ip', 'appVersion', 'timeStamp', 'sdk'], id: event.id}
+                $setOnInsert: {meta: ['ip', 'appVersion', 'timeStamp', 'sdk'], id: event.id, appId: event.appId}
             }, // fixed values
             {upsert: true}
         )

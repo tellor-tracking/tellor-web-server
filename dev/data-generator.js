@@ -2,7 +2,7 @@ const c = require('chance').Chance();
 const db = require('../src/db');
 const moment = require('moment');
 
-function getFakeEvents(numberOfEvents, numberOfDifferentEvents, days) {
+function getFakeEvents(numberOfEvents, numberOfDifferentEvents, days, appId) {
 
     const timestamps = [];
     const d = moment();
@@ -40,7 +40,8 @@ function getFakeEvents(numberOfEvents, numberOfDifferentEvents, days) {
                 appVersion: 1,
                 timestamp:  c.pickone(timestamps),
                 sdk: 'web'
-            }
+            },
+            appId: appId
         }
     }
 
@@ -53,8 +54,24 @@ function clearAllCollections() {
     d.collection('events').drop(()=> console.log('events dropped'));
     d.collection('eventsCounts').drop(()=> console.log('eventsCounts dropped'));
     d.collection('eventsFields').drop(()=> console.log('eventsFields dropped'));
+    d.collection('applications').drop(()=> console.log('applications dropped'));
 
 }
 
- db.connect(()=> db.insertTrackEvents(getFakeEvents(100000, 40, 300)));
- // db.connect(clearAllCollections);
+function createEventsForApplication(appName) {
+
+    db.connect(()=> {
+        db.registerApplication(appName, (err, {id})=> {
+            db.insertTrackEvents(getFakeEvents(10000, 10, 30, id));
+        });
+    });
+
+}
+
+
+let [,, action] = process.argv;
+if (action === 'add') {
+    createEventsForApplication('TestOne');
+} else if (action === 'rm') {
+    db.connect(clearAllCollections);
+}

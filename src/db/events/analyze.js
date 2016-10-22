@@ -7,10 +7,10 @@ function getEventCounts(db) {
 }
 
 function getAllEventsCount(db) {
-    return function(cb) {
+    return function(appId, cb) {
 
         const collection = db().collection('eventsCounts');
-        collection.find({}).toArray((err, docs) => {
+        collection.find({appId}).toArray((err, docs) => {
             if (err) {
                 return cb(err);
             }

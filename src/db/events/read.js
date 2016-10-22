@@ -1,9 +1,9 @@
 function getEvents(db) {
-    return function(cb) {
+    return function(appId, cb) {
 
         const collection = db().collection('eventsFields');
 
-        collection.find({}).toArray(cb);
+        collection.find({appId}).toArray(cb);
     }
 }
 

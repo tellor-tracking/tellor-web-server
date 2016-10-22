@@ -2,11 +2,11 @@ const db = require('../../db');
 const Boom = require('boom');
 
 const getEvents = {
-    path: '/api/events',
+    path: '/api/{appId}/events',
     method: 'GET',
     handler(request, reply) {
 
-        db.getEvents((err, docs) => {
+        db.getEvents(request.params.appId, (err, docs) => {
             if (err) {
                 return reply(Boom.badImplementation('Failed to retrieve events', err));
             }

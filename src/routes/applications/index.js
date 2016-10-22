@@ -19,4 +19,15 @@ const registerApplication = {
     }
 };
 
-module.exports = [registerApplication];
+const removeApplication = {
+    path: '/api/applications/{id}',
+    method: 'DELETE',
+    handler(request, reply) {
+
+        // TODO authenticate if user can delete
+
+        reply('TODO');
+    }
+};
+
+module.exports = [registerApplication, removeApplication];

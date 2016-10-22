@@ -16,20 +16,20 @@ function getAnalyticsData(request) {
     }
 }
 
-function formatTrackObjectFactory(sdk, appVersion, analytics, timeStamp) {
-    const additionalData = Object.assign({}, analytics, {timeStamp, sdk, appVersion});
+function formatTrackObjectFactory(sdk, appId, appVersion, analytics, timestamp) {
+    const additionalData = Object.assign({}, analytics, {timestamp, sdk, appVersion});
     return (eventData) => {
         // TODO validate eventData (or better do it client side)
-        return Object.assign(eventData, {meta: additionalData}); // TODO implement data merging from client side and server side
+        return Object.assign(eventData, {meta: additionalData}, {appId}); // TODO implement data merging from client side and server side
     };
 
 }
 
 function getFormattedTrackObjects(requestQuery, extractedAnalytics, utcTimeStamp) {
-    const {sdk, events, app_version} = requestQuery;
-    const eventsArray = JSON.parse(events); // TODO implement more efficient way to pass data, JSON is slow
+    const {sdk, events, app_version, app_key} = requestQuery;
+    const eventsArray = JSON.parse(events);
 
-    return eventsArray.map(formatTrackObjectFactory(sdk, app_version, extractedAnalytics, utcTimeStamp));
+    return eventsArray.map(formatTrackObjectFactory(sdk, app_key, app_version, extractedAnalytics, utcTimeStamp));
 }
 
 // TODO add validation for data structure and request itself
@@ -37,20 +37,19 @@ const trackEvent = {
     method: 'GET',
     path: '/track',
     handler(request, reply) {
-
-        // TODO validate app key
+        reply();
 
         if (!areAllFieldsPresent(request.query)) {
             return reply(Boom.badRequest('Not all arguments are defined'));
         }
 
-        const trackEvents = getFormattedTrackObjects(request.query, getAnalyticsData(request), getUtcTimeStamp());
+        db.isAppIdValid(request.query.app_key, (err, isValid) => {
+            console.log('isValid', err, isValid);
+            if (!err && !isValid) return;
 
-        const t = Date.now();
-        //save to db, reply
-        db.insertTrackEvents(trackEvents, ()=> console.log(Date.now() - t));
-
-        reply()
+            const trackEvents = getFormattedTrackObjects(request.query, getAnalyticsData(request), getUtcTimeStamp());
+            db.insertTrackEvents(trackEvents);
+        });
     }
 };
 

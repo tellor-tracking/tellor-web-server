@@ -15,10 +15,10 @@ const getEventCount = {
 };
 
 const getAllEventsCount = {
-    path: '/api/events/all/count',
+    path: '/api/{appId}/events/count',
     method: 'GET',
     handler(request, reply) {
-        db.getAllEventsCount((err, docs) => {
+        db.getAllEventsCount(request.params.appId, (err, docs) => {
             if (err) {
                 return reply(Boom.badImplementation('Failed to retrieve all events count', err));
             }
