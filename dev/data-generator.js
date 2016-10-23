@@ -58,20 +58,38 @@ function clearAllCollections() {
 
 }
 
-function createEventsForApplication(appName) {
+function createEventsForApplication(appName, name1, name2, name3) {
 
     db.connect(()=> {
-        db.registerApplication(appName, (err, {id})=> {
+        db.registerApplication(appName, appName, (err, {id})=> {
             db.insertTrackEvents(getFakeEvents(10000, 10, 30, id));
         });
+
+        if (name1) {
+            db.registerApplication(name1, name1, (err, {id})=> {
+                db.insertTrackEvents(getFakeEvents(10000, 10, 30, id));
+            });
+        }
+
+        if (name2) {
+            db.registerApplication(name2, name2, (err, {id})=> {
+                db.insertTrackEvents(getFakeEvents(10000, 10, 30, id));
+            });
+        }
+
+        if (name3) {
+            db.registerApplication(name3, name3, (err, {id})=> {
+                db.insertTrackEvents(getFakeEvents(10000, 10, 30, id));
+            });
+        }
     });
 
 }
 
 
-let [,, action] = process.argv;
+let [,, action, name1, name2, name3] = process.argv;
 if (action === 'add') {
-    createEventsForApplication('TestOne');
+    createEventsForApplication('TestOne', name1, name2, name3);
 } else if (action === 'rm') {
     db.connect(clearAllCollections);
 }
