@@ -19,7 +19,7 @@ const authenticateApplication = db => co.wrap(function* (id, password) {
 
 const getApplications = db => (cb) => {
     const collection = db().collection('applications');
-    collection.find({}).toArray(cb);
+    collection.find({}, {password: 0}).toArray(cb);
 };
 
 const registerApplication = db => (name, password, cb) => {
