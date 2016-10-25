@@ -7,6 +7,25 @@ function getEventCounts(db) {
 }
 
 function getAllEventsCount(db) {
+    function formatForSingleKey(key, obj) {
+        return Object.keys(obj[key]).map(k => ({date: k, count: obj[key][k], name: key}));
+    }
+
+    function formatDataForClient(docs) {
+        for (let doc of docs) {
+            doc.count = formatForSingleKey('count', doc);
+            for (let segKey in doc.segmentation) {
+                let segKeyValueKeysValues = [];
+                for (let segValueKey in doc.segmentation[segKey]) {
+                    segKeyValueKeysValues = segKeyValueKeysValues.concat(formatForSingleKey(segValueKey, doc.segmentation[segKey]));
+                }
+                doc.segmentation[segKey] = segKeyValueKeysValues;
+            }
+        }
+
+        return docs;
+    }
+
     return function(appId, cb) {
 
         const collection = db().collection('eventsCounts');
@@ -14,8 +33,7 @@ function getAllEventsCount(db) {
             if (err) {
                 return cb(err);
             }
-
-            cb(err, docs); // TODO return only count for like 30 days or something
+            cb(err, formatDataForClient(docs)); // TODO return only count for like 30 days or something
         });
     }
 }
