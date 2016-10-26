@@ -5,11 +5,21 @@ const moment = require('moment');
 function formatForSingleKey(key, obj, isDateInRange) {
     return Object.keys(obj[key]).reduce((result, k) => {
         if (isDateInRange(k)) {
-            result.push({date: k, count: obj[key][k], name: key});
+            result.push({date: k, [key]: obj[key][k]});
         }
 
         return result;
     }, []);
+}
+
+function formatForSegmentation(date, obj) {
+    const valuesBySegKeys =  Object.keys(obj).reduce((result, segKeyValueKey) => {
+        result[segKeyValueKey] = obj[segKeyValueKey];
+        return result;
+    }, {});
+
+    valuesBySegKeys.date = date;
+    return valuesBySegKeys;
 }
 
 function formatAllEventsForClient (docs, isDateInRange) {
@@ -24,8 +34,11 @@ function formatEventForClient(doc, isDateInRange) {
     doc.count = formatForSingleKey('count', doc, isDateInRange);
     for (let segKey in doc.segmentation) {
         let segKeyValueKeysValues = [];
-        for (let segValueKey in doc.segmentation[segKey]) {
-            segKeyValueKeysValues = segKeyValueKeysValues.concat(formatForSingleKey(segValueKey, doc.segmentation[segKey], isDateInRange));
+
+        for (let date in doc.segmentation[segKey]) {
+            if (!isDateInRange(date)) continue;
+
+            segKeyValueKeysValues.push(formatForSegmentation(date, doc.segmentation[segKey][date]));
         }
         doc.segmentation[segKey] = segKeyValueKeysValues;
     }
@@ -34,8 +47,8 @@ function formatEventForClient(doc, isDateInRange) {
 }
 
 function reduceDateRangeFactory({startDate = null, endDate = null}) {
-    const s = moment(startDate).subtract(1, 'hour');
-    const e = moment(startDate).add(1, 'hour');
+    const s = moment(startDate).subtract(1, 'hours');
+    const e = moment(endDate).add(1, 'hours');
     if (startDate && endDate) {
         return (d) => moment(d).isBetween(s, e);
     } else if (startDate) {
@@ -72,6 +85,8 @@ function getAllEventsCount(db) {
             if (err) {
                 return cb(err);
             }
+            // TODO maybe remove this or return more basic data? if many events this will format ginormous json
+            throw Error('read TODO!!!!!!! :)');
             cb(err, formatDataForClient(docs, formatAllEventsForClient({startDate, endDate}))); // TODO return only count for like 30 days or something
         });
     }

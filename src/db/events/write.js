@@ -11,7 +11,7 @@ function constructIncrementObject(segmentation, timeStamp) {
 
     if (segmentation) {
         for (let key of Object.keys(segmentation)) {
-            obj[`segmentation.${key}.${segmentation[key]}.${date}`] = 1
+            obj[`segmentation.${key}.${date}.${segmentation[key]}`] = 1
         }
     }
 

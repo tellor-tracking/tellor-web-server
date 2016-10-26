@@ -62,7 +62,7 @@ function createEventsForApplication(appName, name1, name2, name3) {
 
     db.connect(()=> {
         db.registerApplication(appName, appName, (err, {id})=> {
-            db.insertTrackEvents(getFakeEvents(10000, 5, 3, id));
+            db.insertTrackEvents(getFakeEvents(10000, 5, 30, id));
         });
 
         if (name1) {
