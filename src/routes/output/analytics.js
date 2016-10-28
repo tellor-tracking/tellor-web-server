@@ -18,4 +18,4 @@ const getEventCount = {
     }
 };
 
-module.exports = [getEventCount, getAllEventsCount];
+module.exports = [getEventCount];
