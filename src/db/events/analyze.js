@@ -5,11 +5,12 @@ const moment = require('moment');
 function formatForSingleKey(key, obj, isDateInRange) {
     return Object.keys(obj[key]).reduce((result, k) => {
         if (isDateInRange(k)) {
-            result.push({date: k, [key]: obj[key][k]});
+            result.byDate.push({date: k, [key]: obj[key][k]});
+            result.total += obj[key][k];
         }
 
         return result;
-    }, []);
+    }, {byDate: [], total: 0});
 }
 
 function formatForSegmentation(date, obj) {
@@ -31,7 +32,10 @@ function formatAllEventsForClient (docs, isDateInRange) {
 
 function formatEventForClient(doc, isDateInRange) {
 
-    doc.count = formatForSingleKey('count', doc, isDateInRange);
+    const {byDate, total} = formatForSingleKey('count', doc, isDateInRange);
+    doc.count = byDate;
+    doc.totalCount = total;
+
     for (let segKey in doc.segmentation) {
         let segKeyValueKeysValues = [];
 
