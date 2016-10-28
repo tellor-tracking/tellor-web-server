@@ -80,23 +80,6 @@ function getEventCounts(db) {
     }
 }
 
-function getAllEventsCount(db) {
-
-    return function({appId, startDate, endDate}, cb) {
-
-        const collection = db().collection('eventsCounts');
-        collection.find({appId}).toArray((err, docs) => {
-            if (err) {
-                return cb(err);
-            }
-            // TODO maybe remove this or return more basic data? if many events this will format ginormous json
-            throw Error('read TODO!!!!!!! :)');
-            cb(err, formatDataForClient(docs, formatAllEventsForClient({startDate, endDate}))); // TODO return only count for like 30 days or something
-        });
-    }
-}
-
 module.exports = {
-    getEventCounts,
-    getAllEventsCount
+    getEventCounts
 };
