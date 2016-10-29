@@ -2,6 +2,10 @@ const moment = require('moment');
 
 /* FORMATTING & FILTERING */
 
+function orderByDate(listOfCounts) {
+    return listOfCounts.sort((c1, c2) => moment(c1.date).isBefore(c2.date) ? -1 : 1)
+}
+
 function formatForSingleKey(key, obj, isDateInRange) {
     return Object.keys(obj[key]).reduce((result, k) => {
         if (isDateInRange(k)) {
@@ -23,17 +27,10 @@ function formatForSegmentation(date, obj) {
     return valuesBySegKeys;
 }
 
-function formatAllEventsForClient (docs, isDateInRange) {
-    for (let doc of docs) {
-        formatEventForClient(doc, isDateInRange)
-    }
-    return docs;
-}
-
 function formatEventForClient(doc, isDateInRange) {
 
     const {byDate, total} = formatForSingleKey('count', doc, isDateInRange);
-    doc.count = byDate;
+    doc.count = orderByDate(byDate);
     doc.totalCount = total;
 
     for (let segKey in doc.segmentation) {
@@ -44,7 +41,7 @@ function formatEventForClient(doc, isDateInRange) {
 
             segKeyValueKeysValues.push(formatForSegmentation(date, doc.segmentation[segKey][date]));
         }
-        doc.segmentation[segKey] = segKeyValueKeysValues;
+        doc.segmentation[segKey] = orderByDate(segKeyValueKeysValues);
     }
 
     return doc;
