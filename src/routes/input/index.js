@@ -20,7 +20,7 @@ function formatTrackObjectFactory(sdk, appId, appVersion, analytics, timestamp) 
     const additionalData = Object.assign({}, analytics, {timestamp, sdk, appVersion});
     return (eventData) => {
         // TODO validate eventData (or better do it client side)
-        return Object.assign(eventData, {meta: additionalData}, {appId}); // TODO implement data merging from client side and server side
+        return Object.assign(eventData, {displayName: eventData.name}, {meta: additionalData}, {appId}); // TODO implement data merging from client side and server side
     }; // TODO add ability to specify event group
 
 }
@@ -43,12 +43,13 @@ const trackEvent = {
             return reply(Boom.badRequest('Not all arguments are defined'));
         }
 
-        db.isAppIdValid(request.query.app_key, (err, isValid) => {
-            console.log('isValid', err, isValid);
+        const appKey = request.query.app_key;
+
+        db.isAppIdValid(appKey, (err, isValid) => {
             if (!err && !isValid) return;
 
             const trackEvents = getFormattedTrackObjects(request.query, getAnalyticsData(request), getUtcTimeStamp());
-            db.insertTrackEvents(trackEvents);
+            db.insertTrackEvents(trackEvents, appKey);
         });
     }
 };
