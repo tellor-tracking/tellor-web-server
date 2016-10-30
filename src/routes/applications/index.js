@@ -46,4 +46,18 @@ const removeApplication = {
     }
 };
 
-module.exports = [registerApplication, removeApplication, getApplications];
+const updateEventsFilter = {
+    path: '/api/applications/{id}/eventsFilters',
+    method: 'POST',
+    handler(request, reply) {
+
+        const id = request.params.id;
+        db.updateEventsFilter(id, request.payload.eventFilter)
+            .then(res=> reply({isSuccessful: true}))
+            .catch(error => reply({error: `${error}`}));
+    }
+};
+
+
+
+module.exports = [registerApplication, removeApplication, getApplications, updateEventsFilter];

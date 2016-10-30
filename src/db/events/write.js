@@ -1,4 +1,5 @@
 const md5 = require('md5');
+const co = require('co');
 
 function addGUIDs(appId, events) {
     for (let event of events) {
@@ -21,20 +22,117 @@ function constructIncrementObject(segmentation, timeStamp) {
 }
 
 
-function incrementBasicCounts(events, db) {
-    const collection = db.collection('eventsCounts');
+function incrementStats(events, db) {
+    const collection = db.collection(`eventsCounts`);
 
     for (let event of events) {
         collection.updateOne(
-            {name: event.name},
+            {id: `${event.id}:filters:none`},
             {
                 $inc: constructIncrementObject(event.segmentation, event.meta.timestamp),
-                $setOnInsert: {id: event.id, appId: event.appId}
+                $setOnInsert: {appId: event.appId, name: event.name}
             },
             {upsert: true}
         )
     }
 }
+
+/* INCREMENT BY FILTERS */
+
+function getFilters(appId, db) {
+    // TODO this probably need to be at applications, need to make it easy to access db function from within db functions
+
+    const collection = db.collection('applications');
+    return collection.find({id: appId}).limit(1).next()
+        .then(doc => doc.eventsFilters)
+}
+
+function getAllFiltersCombinations(filters) {
+
+    const combinations = [];
+
+    const filterByType = filters
+        .reduce((types, filter) => {
+            const type = filter.filterValue.split('=')[0]; // ip, appVersion, ...
+            filter.type = type;
+            if (types[type]) {
+                types[type].push(filter);
+            } else {
+                types[type] = [filter];
+            }
+            return types;
+        }, {});
+
+    if (filterByType.ip) {
+        filterByType.ip.forEach(ipFilter => {
+            combinations.push([ipFilter]);
+
+            if (filterByType.appVersion) {
+                filterByType.appVersion.forEach(appVersionFilter => {
+                    combinations.push([ipFilter, appVersionFilter]);
+                });
+            }
+        })
+    }
+
+    if (filterByType.appVersion) {
+        filterByType.appVersion.forEach(appVersionFilter => {
+            combinations.push([appVersionFilter]);
+        });
+    }
+
+    return combinations;
+}
+
+function incrementStatsByEventsFilters(appId, events, db) {
+
+    getFilters(appId, db)
+        .then(filters => {
+            const filtersCombinations = getAllFiltersCombinations(filters);
+
+            filtersCombinations.forEach(combo => incrementStatsByFilters(combo, events, db));
+        })
+        .catch(err => console.error('Failed to get filters', err));
+}
+
+function doesEventPassFilters(event, filters) {
+    const isNegative = filterValue => filterValue.indexOf('=!') > -1;
+    const getEqualityValue = (filterValue, isNegative) => filterValue.split(isNegative ? '=!' : '=')[1];
+
+    function checkIfMatchFilter(type, filterValue) {
+        if (isNegative(filterValue)) {
+            return event.meta[type] !== getEqualityValue(filterValue, true);
+        } else {
+            return event.meta[type] === getEqualityValue(filterValue, false);
+        }
+    }
+
+    return filters.every(f => checkIfMatchFilter(f.type, f.filterValue));
+}
+
+function incrementStatsByFilters(filters, events, db) {
+    const collection = db.collection(`eventsCounts`);
+
+    for (let event of events) {
+        if (!doesEventPassFilters(event, filters)) {
+            continue;
+        }
+        console.log('incrementing by filterz!', filters);
+
+        collection.updateOne(
+            {id: `${event.id}:filters:${filters.map(f => f.id).join('-')}`},
+            {
+                $inc: constructIncrementObject(event.segmentation, event.meta.timestamp),
+                $setOnInsert: {appId: event.appId, name: event.name}
+            },
+            {upsert: true}
+        )
+    }
+}
+
+/* INCREMENT BY FILTERS - END */
+
+
 
 function updateFieldsModel(events, db) {
     // Basically there are 2 different types of "keys" in our model
@@ -45,10 +143,10 @@ function updateFieldsModel(events, db) {
 
     for (let event of events) {
         collection.updateOne(
-            {name: event.name},
+            {id: event.id},
             {
-                $addToSet: {segmentation: {$each: Object.keys(event.segmentation || {})}}, // TODO maybe when segmentation chages, we should simply create new event version?
-                $setOnInsert: {meta: ['ip', 'appVersion', 'timeStamp', 'sdk'], id: event.id, appId: event.appId}
+                $addToSet: {segmentation: {$each: Object.keys(event.segmentation || {})}},
+                $setOnInsert: {meta: ['ip', 'appVersion', 'timeStamp', 'sdk'], name: event.name, appId: event.appId}
             },
             {upsert: true}
         )
@@ -70,7 +168,8 @@ function insertTrackEvents(getDb) {
             console.log('Successfully inserted track events');
 
             updateFieldsModel(events, db);
-            incrementBasicCounts(events, db);
+            incrementStats(events, db);
+            incrementStatsByEventsFilters(appId, events, db);
         })
     }
 }

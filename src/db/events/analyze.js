@@ -1,4 +1,5 @@
 const moment = require('moment');
+const set = require('lodash/set');
 
 /* FORMATTING & FILTERING */
 
@@ -63,12 +64,57 @@ function reduceDateRangeFactory({startDate = null, endDate = null}) {
 
 /* FORMATTING & FILTERING - END */
 
+/* QUERY FORMATTING */
+
+function formatFilterByQuery(query) {
+    const finalFilterObj = {};
+    if (query.startDate) {
+        finalFilterObj['meta.timestamp'] = {
+            $gte: query.startDate
+        };
+    }
+
+    if (query.endDate) {
+        if (finalFilterObj['meta.timestamp']) {
+            finalFilterObj['meta.timestamp'].$lte = query.endDate;
+        }
+    }
+
+    if (query.ip) {
+        if (query.ip.indexOf('!') > -1) {
+            finalFilterObj['meta.ip'] = {
+                $ne: query.ip.slice(1)
+            }
+        } else {
+            finalFilterObj['meta.ip'] = {
+                $eq: query.ip
+            }
+        }
+    }
+
+    if (query.appVersion) {
+        if (query.appVersion.indexOf('!') > -1) {
+            finalFilterObj['meta.appVersion'] = {
+                $ne: query.appVersion.slice(1)
+            }
+        } else {
+            finalFilterObj['meta.appVersion'] = {
+                $eq: query.appVersion
+            }
+        }
+    }
+
+    return Object.keys(finalFilterObj).length > 0 ? finalFilterObj : null;
+}
+
+/* QUERY FORMATTING - END */
+
 
 function getEventCounts(db) {
     return function({eventId, startDate, endDate}, cb) {
 
         const collection = db().collection('eventsCounts');
-        collection.findOne({id: eventId}, (err, doc) => {
+        collection.findOne({id: `${eventId}:filters:none`}, (err, doc) => {
             if (err) {
                 return cb(err);
             }
@@ -77,6 +123,32 @@ function getEventCounts(db) {
     }
 }
 
+function getEventCountsByFilters(db) {
+    return function({eventId, query}, cb) {
+        const collection = db().collection('events');
+
+        let match = {id: eventId};
+
+        const filterQuery = formatFilterByQuery(query);
+
+        if (filterQuery) {
+            match = Object.assign({}, match, filterQuery)
+        }
+
+        collection.aggregate([
+            {$match: match},
+            {$group: {_id: {segmentation: '$segmentation', timestamp: '$meta.timestamp'} }}
+        ], (err, result) => {
+            if (err) {
+                console.error(err);
+            }
+
+            cb(err, result);
+        })
+    }
+}
+
 module.exports = {
-    getEventCounts
+    getEventCounts,
+    getEventCountsByFilters
 };

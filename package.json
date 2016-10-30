@@ -14,6 +14,8 @@
     "good-console": "^6.1.2",
     "good-squeeze": "^5.0.0",
     "hapi": "^15.2.0",
+    "lodash": "^4.16.4",
+    "md5": "^2.2.1",
     "moment": "^2.15.1",
     "mongodb": "^2.2.11",
     "query-string": "^4.2.3",

@@ -12,7 +12,7 @@ function getFakeEvents(numberOfEvents, numberOfDifferentEvents, days, appId) {
 
     const eventNames = c.unique(c.name, numberOfDifferentEvents);
 
-    const segementationKeysByName = eventNames.reduce((seg, name) => {
+    const segmentationKeysByName = eventNames.reduce((seg, name) => {
         seg[name] = c.unique(c.word, c.d6()).reduce((s, sk) => {
             s[sk] = c.unique(c.word, c.d4());
             return s;
@@ -23,8 +23,8 @@ function getFakeEvents(numberOfEvents, numberOfDifferentEvents, days, appId) {
 
 
     function getSegmentation(name) {
-        return Object.keys(segementationKeysByName[name]).reduce((finalObj, segKey) => {
-            finalObj[segKey] = c.pickone(segementationKeysByName[name][segKey]);
+        return Object.keys(segmentationKeysByName[name]).reduce((finalObj, segKey) => {
+            finalObj[segKey] = c.pickone(segmentationKeysByName[name][segKey]);
             return finalObj;
         }, {})
 
@@ -37,7 +37,7 @@ function getFakeEvents(numberOfEvents, numberOfDifferentEvents, days, appId) {
             segmentation: getSegmentation(name),
             meta: {
                 ip: c.ip(),
-                appVersion: 1,
+                appVersion: c.pickone(['1', '2', '3a']),
                 timestamp:  c.pickone(timestamps),
                 sdk: 'web'
             },
@@ -48,39 +48,55 @@ function getFakeEvents(numberOfEvents, numberOfDifferentEvents, days, appId) {
     return c.n(makeEvent, numberOfEvents);
 }
 
-function clearAllCollections() {
+function clearAllCollections(cb) {
     const d = db.getDb();
 
-    d.collection('events').drop(()=> console.log('events dropped'));
-    d.collection('eventsCounts').drop(()=> console.log('eventsCounts dropped'));
-    d.collection('eventsFields').drop(()=> console.log('eventsFields dropped'));
-    d.collection('applications').drop(()=> console.log('applications dropped'));
-    d.collection('eventsIdentification').drop(()=> console.log('eventsIdentification dropped'));
+    d.collection('events').drop(()=> {
+        console.log('events dropped');
+        d.collection('eventsCounts').drop(()=> {
+            console.log('eventsCounts dropped');
+            d.collection('eventsFields').drop(()=> {
+                console.log('eventsFields dropped');
+                d.collection('applications').drop(()=> {
+                    console.log('applications dropped');
+                    d.collection('eventsIdentification').drop(()=> {
+                        console.log('eventsIdentification dropped');
+                        cb && cb();
+                    });
+                });
+            });
+        });
+    });
 
 }
 
 function createEventsForApplication(appName, name1, name2, name3) {
-
+console.log(appName, name1, name2, name3);
     db.connect(()=> {
         db.registerApplication(appName, appName, (err, {id})=> {
-            db.insertTrackEvents(getFakeEvents(10000, 5, 30, id), appName);
+            db.updateEventsFilter(id, {filterValue: 'ip=111.222.333'})
+                .then(() => db.updateEventsFilter(id, {filterValue: 'appVersion=1'}))
+                .then(() => db.updateEventsFilter(id, {filterValue: 'appVersion=2a'}))
+                .then(() => db.updateEventsFilter(id, {filterValue: 'appVersion=2b'}))
+                .then(() => db.updateEventsFilter(id, {filterValue: 'ip=1234.223.4.5'}))
+                .then(() => db.insertTrackEvents(getFakeEvents(100, 2, 30, id), id))
         });
 
         if (name1) {
             db.registerApplication(name1, name1, (err, {id})=> {
-                db.insertTrackEvents(getFakeEvents(10000, 10, 30, id), name1);
+                db.insertTrackEvents(getFakeEvents(10000, 10, 30, id), id);
             });
         }
 
         if (name2) {
             db.registerApplication(name2, name2, (err, {id})=> {
-                db.insertTrackEvents(getFakeEvents(10000, 10, 30, id), name2);
+                db.insertTrackEvents(getFakeEvents(10000, 10, 30, id), id);
             });
         }
 
         if (name3) {
             db.registerApplication(name3, name3, (err, {id})=> {
-                db.insertTrackEvents(getFakeEvents(10000, 10, 30, id), name3);
+                db.insertTrackEvents(getFakeEvents(10000, 10, 30, id), id);
             });
         }
     });
@@ -92,5 +108,5 @@ let [,, action, name1, name2, name3] = process.argv;
 if (action === 'add') {
     createEventsForApplication('TestOne', name1, name2, name3);
 } else if (action === 'rm') {
-    db.connect(clearAllCollections);
+    db.connect((c) => clearAllCollections(() => c.close()));
 }

@@ -29,7 +29,7 @@ function getFormattedTrackObjects(requestQuery, extractedAnalytics, utcTimeStamp
     const {sdk, events, app_version, app_key} = requestQuery;
     const eventsArray = JSON.parse(events);
 
-    return eventsArray.map(formatTrackObjectFactory(sdk, app_key, app_version, extractedAnalytics, utcTimeStamp));
+    return eventsArray.map(formatTrackObjectFactory(sdk, app_key, `${app_version}`, extractedAnalytics, utcTimeStamp));
 }
 
 // TODO add validation for data structure and request itself
