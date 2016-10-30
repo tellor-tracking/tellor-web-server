@@ -1,7 +1,9 @@
-const uuid = require('shortid');
+const md5 = require('md5');
 
-function addGUIDs(events) {
-    events.forEach(event => event.id = uuid.generate());
+function addGUIDs(appId, events) {
+    for (let event of events) {
+        event.id = md5(appId + event.name);
+    }
 }
 
 
@@ -47,7 +49,7 @@ function updateFieldsModel(events, db) {
             {
                 $addToSet: {segmentation: {$each: Object.keys(event.segmentation || {})}}, // TODO maybe when segmentation chages, we should simply create new event version?
                 $setOnInsert: {meta: ['ip', 'appVersion', 'timeStamp', 'sdk'], id: event.id, appId: event.appId}
-            }, // fixed values
+            },
             {upsert: true}
         )
     }
@@ -56,9 +58,9 @@ function updateFieldsModel(events, db) {
 
 // TODO make reference to event stuff by ID, not name
 function insertTrackEvents(getDb) {
-    return function(events, cb) {
+    return function(events, appId) {
         const db = getDb();
-        addGUIDs(events);
+        addGUIDs(appId, events);
 
         db.collection('events').insertMany(events, (err, result) => {
             if (err) {
@@ -66,8 +68,6 @@ function insertTrackEvents(getDb) {
             }
 
             console.log('Successfully inserted track events');
-
-            cb && cb(err, result);
 
             updateFieldsModel(events, db);
             incrementBasicCounts(events, db);

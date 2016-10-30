@@ -55,6 +55,7 @@ function clearAllCollections() {
     d.collection('eventsCounts').drop(()=> console.log('eventsCounts dropped'));
     d.collection('eventsFields').drop(()=> console.log('eventsFields dropped'));
     d.collection('applications').drop(()=> console.log('applications dropped'));
+    d.collection('eventsIdentification').drop(()=> console.log('eventsIdentification dropped'));
 
 }
 
@@ -62,24 +63,24 @@ function createEventsForApplication(appName, name1, name2, name3) {
 
     db.connect(()=> {
         db.registerApplication(appName, appName, (err, {id})=> {
-            db.insertTrackEvents(getFakeEvents(10000, 5, 30, id));
+            db.insertTrackEvents(getFakeEvents(10000, 5, 30, id), appName);
         });
 
         if (name1) {
             db.registerApplication(name1, name1, (err, {id})=> {
-                db.insertTrackEvents(getFakeEvents(10000, 10, 30, id));
+                db.insertTrackEvents(getFakeEvents(10000, 10, 30, id), name1);
             });
         }
 
         if (name2) {
             db.registerApplication(name2, name2, (err, {id})=> {
-                db.insertTrackEvents(getFakeEvents(10000, 10, 30, id));
+                db.insertTrackEvents(getFakeEvents(10000, 10, 30, id), name2);
             });
         }
 
         if (name3) {
             db.registerApplication(name3, name3, (err, {id})=> {
-                db.insertTrackEvents(getFakeEvents(10000, 10, 30, id));
+                db.insertTrackEvents(getFakeEvents(10000, 10, 30, id), name3);
             });
         }
     });
