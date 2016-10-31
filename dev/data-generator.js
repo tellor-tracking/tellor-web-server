@@ -79,7 +79,7 @@ console.log(appName, name1, name2, name3);
                 .then(() => db.addEventsFilter(id, {filterValue: 'appVersion=2a'}))
                 .then(() => db.addEventsFilter(id, {filterValue: 'appVersion=2b'}))
                 .then(() => db.addEventsFilter(id, {filterValue: 'ip=1234.223.4.5'}))
-                .then(() => db.insertTrackEvents(getFakeEvents(100, 2, 30, id), id))
+                .then(() => db.insertTrackEvents(getFakeEvents(40000, 20, 60, id), id))
         });
 
         if (name1) {

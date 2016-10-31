@@ -97,13 +97,13 @@ function incrementStatsByEventsFilters(appId, events, db) {
 
 function doesEventPassFilters(event, filters) {
     const isNegative = filterValue => filterValue.indexOf('=!') > -1;
-    const getEqualityValue = (filterValue, isNegative) => filterValue.split(isNegative ? '=!' : '=')[1];
+    const getEqualityValues = (filterValue, isNegative) => filterValue.split(isNegative ? '=!' : '=')[1].split(','); // these values need to be escaped b4 this
 
     function checkIfMatchFilter(type, filterValue) {
         if (isNegative(filterValue)) {
-            return event.meta[type] !== getEqualityValue(filterValue, true);
+            return getEqualityValues(filterValue, true).every(val => event.meta[type] !== val);
         } else {
-            return event.meta[type] === getEqualityValue(filterValue, false);
+            return getEqualityValues(filterValue, false).every(val => event.meta[type] === val);
         }
     }
 

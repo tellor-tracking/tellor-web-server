@@ -111,10 +111,12 @@ function formatFilterByQuery(query) {
 
 
 function getEventCounts(db) {
-    return function({eventId, startDate, endDate}, cb) {
+    return function(eventId, {startDate, endDate, filters}, cb) {
+
+        const filtersQuery = filters ? filters.replace(',', '-') : 'none';
 
         const collection = db().collection('eventsCounts');
-        collection.findOne({id: `${eventId}:filters:none`}, (err, doc) => {
+        collection.findOne({id: `${eventId}:filters:${filtersQuery}`}, (err, doc) => {
             if (err) {
                 return cb(err);
             }
@@ -123,32 +125,6 @@ function getEventCounts(db) {
     }
 }
 
-function getEventCountsByFilters(db) {
-    return function({eventId, query}, cb) {
-        const collection = db().collection('events');
-
-        let match = {id: eventId};
-
-        const filterQuery = formatFilterByQuery(query);
-
-        if (filterQuery) {
-            match = Object.assign({}, match, filterQuery)
-        }
-
-        collection.aggregate([
-            {$match: match},
-            {$group: {_id: {segmentation: '$segmentation', timestamp: '$meta.timestamp'} }}
-        ], (err, result) => {
-            if (err) {
-                console.error(err);
-            }
-
-            cb(err, result);
-        })
-    }
-}
-
 module.exports = {
-    getEventCounts,
-    getEventCountsByFilters
+    getEventCounts
 };

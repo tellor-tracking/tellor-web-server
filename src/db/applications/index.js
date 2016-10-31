@@ -62,6 +62,7 @@ const addEventsFilter = db => (appId, {filterValue, filterId = null}) => {
 const deleteEventsFilter = db => (appId, filterId) => {
     const collection = db().collection('applications');
     return collection.updateOne({id: appId}, {$pull: {eventsFilters: {id: filterId}}});
+    // TODO delete all stats aswell
 };
 
 
