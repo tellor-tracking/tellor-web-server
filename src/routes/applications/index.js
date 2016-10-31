@@ -52,7 +52,20 @@ const updateEventsFilter = {
     handler(request, reply) {
 
         const id = request.params.id;
-        db.updateEventsFilter(id, request.payload.eventFilter)
+        db.addEventsFilter(id, request.payload.eventFilter)
+            .then(res=> reply({isSuccessful: true}))
+            .catch(error => reply({error: `${error}`}));
+    }
+};
+
+const deleteEventsFilter = {
+    path: '/api/applications/{appId}/eventsFilters/{id}',
+    method: 'DELETE',
+    handler(request, reply) {
+
+        const {appId, id} = request.params;
+
+        db.deleteEventsFilter(appId, id)
             .then(res=> reply({isSuccessful: true}))
             .catch(error => reply({error: `${error}`}));
     }
@@ -60,4 +73,4 @@ const updateEventsFilter = {
 
 
 
-module.exports = [registerApplication, removeApplication, getApplications, updateEventsFilter];
+module.exports = [registerApplication, removeApplication, getApplications, updateEventsFilter, deleteEventsFilter];

@@ -47,7 +47,7 @@ const removeApplication = db => co.wrap(function* (id) {
     }
 });
 
-const updateEventsFilter = db => (appId, {filterValue, filterId = null}) => {
+const addEventsFilter = db => (appId, {filterValue, filterId = null}) => {
     // TODO add validation, removal...
     const collection = db().collection('applications');
     if (filterId) {
@@ -59,6 +59,11 @@ const updateEventsFilter = db => (appId, {filterValue, filterId = null}) => {
     }
 };
 
+const deleteEventsFilter = db => (appId, filterId) => {
+    const collection = db().collection('applications');
+    return collection.updateOne({id: appId}, {$pull: {eventsFilters: {id: filterId}}});
+};
+
 
 module.exports = {
     registerApplication,
@@ -66,5 +71,6 @@ module.exports = {
     isAppIdValid,
     getApplications,
     authenticateApplication,
-    updateEventsFilter
+    addEventsFilter,
+    deleteEventsFilter
 };

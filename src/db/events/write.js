@@ -117,7 +117,6 @@ function incrementStatsByFilters(filters, events, db) {
         if (!doesEventPassFilters(event, filters)) {
             continue;
         }
-        console.log('incrementing by filterz!', filters);
 
         collection.updateOne(
             {id: `${event.id}:filters:${filters.map(f => f.id).join('-')}`},
@@ -154,7 +153,6 @@ function updateFieldsModel(events, db) {
 }
 
 
-// TODO make reference to event stuff by ID, not name
 function insertTrackEvents(getDb) {
     return function(events, appId) {
         const db = getDb();
