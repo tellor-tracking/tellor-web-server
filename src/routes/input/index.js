@@ -44,12 +44,16 @@ const trackEvent = {
 
         const appKey = request.query.app_key;
 
-        db.isAppIdValid(appKey, (err, isValid) => {
-            if (!err && !isValid) return console.error('Invalid app key');
+        db.isAppIdValid(appKey)
+            .then((isValid) => {
+                if (!isValid) return console.error('Invalid app key');
 
-            const trackEvents = getFormattedTrackObjects(request.query, getAnalyticsData(request), getUtcTimeStamp());
-            db.insertTrackEvents(trackEvents, appKey);
-        });
+                const trackEvents = getFormattedTrackObjects(request.query, getAnalyticsData(request), getUtcTimeStamp());
+                db.insertTrackEvents(trackEvents, appKey);
+            })
+            .catch(err => {
+                console.error('Track failed, due to error', err);
+            })
     }
 };
 

@@ -73,31 +73,35 @@ function clearAllCollections(cb) {
 function createEventsForApplication(appName, name1, name2, name3) {
 console.log(appName, name1, name2, name3);
     db.connect(()=> {
-        db.registerApplication(appName, appName, (err, {id})=> {
-            db.addEventsFilter(id, {filterValue: 'ip=111.222.333'})
-                .then(() => db.addEventsFilter(id, {filterValue: 'appVersion=1'}))
-                .then(() => db.addEventsFilter(id, {filterValue: 'appVersion=2a'}))
-                .then(() => db.addEventsFilter(id, {filterValue: 'appVersion=2b'}))
-                .then(() => db.addEventsFilter(id, {filterValue: 'ip=1234.223.4.5'}))
-                .then(() => db.insertTrackEvents(getFakeEvents(40000, 20, 60, id), id))
-        });
+        db.registerApplication(appName, appName)
+            .then(({id})=> {
+                db.addEventsFilter(id, {filterValue: 'ip=111.222.333'})
+                    .then(() => db.addEventsFilter(id, {filterValue: 'appVersion=1'}))
+                    .then(() => db.addEventsFilter(id, {filterValue: 'appVersion=2a'}))
+                    .then(() => db.addEventsFilter(id, {filterValue: 'appVersion=2b'}))
+                    .then(() => db.addEventsFilter(id, {filterValue: 'ip=1234.223.4.5'}))
+                    .then(() => db.insertTrackEvents(getFakeEvents(40000, 20, 60, id), id))
+            });
 
         if (name1) {
-            db.registerApplication(name1, name1, (err, {id})=> {
-                db.insertTrackEvents(getFakeEvents(10000, 10, 30, id), id);
-            });
+            db.registerApplication(name1, name1)
+                .then(({id})=> {
+                    db.insertTrackEvents(getFakeEvents(10000, 10, 30, id), id);
+                });
         }
 
         if (name2) {
-            db.registerApplication(name2, name2, (err, {id})=> {
-                db.insertTrackEvents(getFakeEvents(10000, 10, 30, id), id);
-            });
+            db.registerApplication(name2, name2)
+                .then(({id})=> {
+                    db.insertTrackEvents(getFakeEvents(10000, 10, 30, id), id);
+                });
         }
 
         if (name3) {
-            db.registerApplication(name3, name3, (err, {id})=> {
-                db.insertTrackEvents(getFakeEvents(10000, 10, 30, id), id);
-            });
+            db.registerApplication(name3, name3)
+                .then(({id})=> {
+                    db.insertTrackEvents(getFakeEvents(10000, 10, 30, id), id);
+                });
         }
     });
 

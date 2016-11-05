@@ -6,12 +6,11 @@ const getApplications = {
         method: 'GET',
         handler(request, reply) {
 
-        db.getApplications((err, docs) => {
-            if (err) {
-                return reply(Boom.badImplementation('Failed to retrieve applications', err));
-            }
-            reply(docs);
-        });
+        db.getApplications()
+            .then(docs => {
+                reply(docs);
+            })
+            .catch(err => reply(Boom.badImplementation('Failed to retrieve applications', err)));
     }
 };
 
@@ -24,24 +23,21 @@ const registerApplication = {
             return reply(Boom.badData('You must provide name'))
         }
 
-        db.registerApplication(request.payload.name, request.payload.password, (err, docs) => {
-            if (err) {
-                return reply(Boom.badImplementation('Failed to register new application', err));
-            }
-            reply(docs);
-        });
+        db.registerApplication(request.payload.name, request.payload.password)
+            .then(docs=> reply(docs))
+            .catch(err => reply(Boom.badImplementation('Failed to register new application', err)))
     }
 };
 
 const removeApplication = {
-    path: '/api/applications/{id}',
-    method: 'POST',
+    path: '/api/applications/{id}/remove',
+    method: 'DELETE',
     handler(request, reply) {
 
-        const id = request.payload.id;
+        const id = request.params.id;
         db.authenticateApplication(id, request.payload.password)
             .then(() => db.removeApplication(id))
-            .then(()=> reply({id:id, isRemoved: true}))
+            .then(()=> reply({id, isRemoved: true}))
             .catch((error)=> reply({id: id, isRemoved: false, error: `${error}`}));
     }
 };
