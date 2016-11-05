@@ -1,4 +1,3 @@
-const Boom = require('boom');
 const moment = require('moment');
 const db = require('../../db');
 
@@ -40,13 +39,13 @@ const trackEvent = {
         reply();
 
         if (!areAllFieldsPresent(request.query)) {
-            return reply(Boom.badRequest('Not all arguments are defined'));
+            return console.error('Not all arguments defined');
         }
 
         const appKey = request.query.app_key;
 
         db.isAppIdValid(appKey, (err, isValid) => {
-            if (!err && !isValid) return;
+            if (!err && !isValid) return console.error('Invalid app key');
 
             const trackEvents = getFormattedTrackObjects(request.query, getAnalyticsData(request), getUtcTimeStamp());
             db.insertTrackEvents(trackEvents, appKey);

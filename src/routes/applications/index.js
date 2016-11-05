@@ -46,7 +46,7 @@ const removeApplication = {
     }
 };
 
-const updateEventsFilter = {
+const addEventsFilter = {
     path: '/api/applications/{id}/eventsFilters',
     method: 'POST',
     handler(request, reply) {
@@ -73,4 +73,4 @@ const deleteEventsFilter = {
 
 
 
-module.exports = [registerApplication, removeApplication, getApplications, updateEventsFilter, deleteEventsFilter];
+module.exports = [registerApplication, removeApplication, getApplications, addEventsFilter, deleteEventsFilter];

@@ -1,8 +1,10 @@
 const MongoClient = require('mongodb').MongoClient;
 const events = require('./events');
 const applications = require('./applications');
+const config = require('../../config');
 
-const URL = 'mongodb://localhost:27017';
+
+const URL = `mongodb://${config.dbHost}/${config.dbName}`;
 
 let database;
 

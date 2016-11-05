@@ -1,0 +1,5 @@
+{
+  "serverPort": 5000,
+  "dbHost": "localhost:27017",
+  "dbName": "tellor-test"
+}
