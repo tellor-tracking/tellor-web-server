@@ -110,21 +110,17 @@ function formatFilterByQuery(query) {
 /* QUERY FORMATTING - END */
 
 
-function getEventCounts(db) {
-    return function(eventId, {startDate, endDate, filters}, cb) {
+function getEventStats(db) {
+    return function(eventId, {startDate, endDate, filters} = {}) {
 
         const filtersQuery = filters ? filters.replace(',', '-') : 'none';
 
         const collection = db().collection('eventsCounts');
-        collection.findOne({id: `${eventId}:filters:${filtersQuery}`}, (err, doc) => {
-            if (err) {
-                return cb(err);
-            }
-            cb(err, formatEventForClient(doc, reduceDateRangeFactory({startDate, endDate})));
-        });
+        return collection.findOne({id: `${eventId}:filters:${filtersQuery}`})
+            .then((doc => formatEventForClient(doc, reduceDateRangeFactory({startDate, endDate}))))
     }
 }
 
 module.exports = {
-    getEventCounts
+    getEventStats
 };

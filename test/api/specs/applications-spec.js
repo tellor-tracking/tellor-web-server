@@ -1,7 +1,7 @@
-const utils = require('../utils');
+const utils = require('../../utils');
 const chai = require('chai');
 const chaiHttp = require('chai-http');
-const db = require('../../src/db');
+const db = require('../../../src/db/index');
 const expect = chai.expect;
 
 chai.use(chaiHttp);
@@ -10,14 +10,9 @@ chai.use(chaiHttp);
 describe('Api:Applications', () =>{
 
     let serverUri;
-    let onAfter;
 
-    before((done) => {
-        utils.connectToDbAndServer(({_serverUri, _onAfter}) => {
-            serverUri = _serverUri;
-            onAfter = _onAfter;
-            done();
-        });
+    before(() => {
+        serverUri = global.serverUri;
     });
 
     it('should create application', async () =>{
@@ -191,7 +186,5 @@ describe('Api:Applications', () =>{
     it('should remove all data related to filter when removing application (stats docs)', () =>{
         // TODO
     });
-
-    after(done => onAfter(done));
 
 });

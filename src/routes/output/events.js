@@ -6,12 +6,9 @@ const getEvents = {
     method: 'GET',
     handler(request, reply) {
 
-        db.getEvents(request.params.appId, (err, docs) => {
-            if (err) {
-                return reply(Boom.badImplementation('Failed to retrieve events', err));
-            }
-            reply(docs);
-        });
+        db.getEvents(request.params.appId)
+            .then(docs => reply(docs))
+            .catch(err  => reply(Boom.badImplementation('Failed to retrieve events', err)));
     }
 };
 

@@ -44,7 +44,7 @@ function getFilters(appId, db) {
 
     const collection = db.collection('applications');
     return collection.find({id: appId}).limit(1).next()
-        .then(doc => doc.eventsFilters)
+        .then(doc => doc ? doc.eventsFilters : [])
 }
 
 function getAllFiltersCombinations(filters) {

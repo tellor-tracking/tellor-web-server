@@ -6,12 +6,9 @@ const getEventCount = {
     method: 'GET',
     handler(request, reply) {
 
-        db.getEventCounts(request.params.id, request.query, (err, docs) => {
-            if (err) {
-                return reply(Boom.badImplementation('Failed to retrieve event count', err));
-            }
-            reply(docs);
-        });
+        db.getEventStats(request.params.id, request.query)
+            .then((err, docs) => reply(docs))
+            .catch(err => reply(Boom.badImplementation('Failed to retrieve event count', err)));
 
     }
 };
