@@ -187,6 +187,7 @@ describe('Api:Applications', () =>{
         const app = apps.find(a => a.id === appId);
 
         expect(app.eventsFilters).to.have.length(1);
+        expect(app.eventsFilters[0]).to.have.property('id').that.equals(filterId1);
     });
 
     it('should remove all data related to filter when removing application (stats docs)', () =>{
