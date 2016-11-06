@@ -47,10 +47,20 @@ const addEventsFilter = {
     method: 'POST',
     handler(request, reply) {
 
+        if (!request.payload.eventFilter && !request.payload.eventFilter.filterValue) {
+            return reply(Boom.badData('You must provide eventFilter.filterValue'))
+        }
+
         const id = request.params.id;
-        db.addEventsFilter(id, request.payload.eventFilter)
-            .then(res=> reply({isSuccessful: true}))
-            .catch(error => reply({error: `${error}`}));
+        db.isAppIdValid(id)
+            .then((isValid) => {
+                if (!isValid) return reply(Boom.badData('Invalid app id'));
+
+                return db.addEventsFilter(id, request.payload.eventFilter)
+                    .then(({id, res})=> reply({isSuccessful: true, id, res}))
+
+            })
+            .catch(error => reply(Boom.badData(error)));
     }
 };
 
@@ -61,9 +71,18 @@ const deleteEventsFilter = {
 
         const {appId, id} = request.params;
 
-        db.deleteEventsFilter(appId, id)
-            .then(res=> reply({isSuccessful: true}))
-            .catch(error => reply({error: `${error}`}));
+        db.isAppIdValid(appId)
+            .then((isValid) => {
+                if (!isValid) return reply(Boom.badData('Invalid app id'));
+                return db.isFilterIdValid(appId, id)
+                    .then((isValid) => {
+                        if (!isValid) return reply(Boom.badData('Invalid filter id'));
+                        return db.deleteEventsFilter(appId, id)
+                            .then(res=> reply({isSuccessful: true}));
+
+                    })
+            })
+            .catch(error => {console.log(error);return reply(Boom.badData(error))});
     }
 };
 

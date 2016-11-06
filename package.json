@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "start-dev": "./node_modules/.bin/nodemon",
-    "test": "cross-env NODE_ENV=test mocha --require babel-polyfill --compilers js:babel-register \"test/**/*-spec.js\" --report progress --watch"
+    "test": "cross-env NODE_ENV=test mocha --require babel-polyfill --compilers js:babel-register \"test/**/*-spec.js\" --report progress --globals serverUri --watch"
   },
   "dependencies": {
     "boom": "^4.2.0",

@@ -6,6 +6,11 @@ const isAppIdValid = db => (id) => {
     return collection.find({id: id}, {_id: 1}).limit(1).next().then((result) => result !== null);
 };
 
+const isFilterIdValid = db => (appId, filterId) => {
+    const collection = db().collection('applications');
+    return collection.find({id: appId}, {eventsFilters: 1}).limit(1).next().then((result) => result.eventsFilters.find(f => f.id === filterId) !== undefined);
+};
+
 const authenticateApplication = db => co.wrap(function* (id, password) {
     const collection = db().collection('applications');
     const doc = yield collection.find({id: id}).limit(1).next();
@@ -48,16 +53,36 @@ const removeApplication = db => co.wrap(function* (id) {
     }*/
 });
 
-const addEventsFilter = db => (appId, {filterValue, filterId = null}) => {
-    // TODO add validation, removal...
-    const collection = db().collection('applications');
-    if (filterId) {
-        // FIXME updating is actually not possible, what should happen is we create new entry and delete everything with old one
-        // so user should not be able to update it, but rather to delete and add new one
-        return collection.updateOne({id: appId, 'eventsFilters.id': filterId}, {$set: {'eventsFilters.$.filterValue': filterValue}});
-    } else {
-        return collection.updateOne({id: appId}, {$addToSet: {'eventsFilters': {filterValue, id: uuid.generate()}}}, {upsert: true});
+function isFilterValueValid(value) {
+    const [key, val, ...rest] = value.split('=');
+    if (key === undefined || val === undefined || rest.length !== 0) {
+        return false;
     }
+
+    if (['ip', 'appVersion'].indexOf(key) === -1) {
+        return false;
+    }
+
+    return true
+
+}
+
+const addEventsFilter = db => (appId, {filterValue}) => {
+    if (!isFilterValueValid(filterValue)) {
+        return Promise.reject('Invalid filterValue');
+    }
+
+    const collection = db().collection('applications');
+    const id = uuid.generate();
+
+    return collection.updateOne({id: appId}, {
+        $addToSet: {
+            'eventsFilters': {
+                filterValue,
+                id
+            }
+        }
+    }, {upsert: true}).then((res) => ({res, id}));
 };
 
 const deleteEventsFilter = db => (appId, filterId) => {
@@ -74,5 +99,6 @@ module.exports = {
     getApplications,
     authenticateApplication,
     addEventsFilter,
-    deleteEventsFilter
+    deleteEventsFilter,
+    isFilterIdValid
 };
