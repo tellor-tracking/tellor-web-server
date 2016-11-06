@@ -18,8 +18,6 @@ describe('Api:Applications', () =>{
             onAfter = _onAfter;
             done();
         });
-
-
     });
 
     it('should create application', async () =>{
