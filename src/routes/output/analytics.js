@@ -7,7 +7,7 @@ const getEventCount = {
     handler(request, reply) {
 
         db.getEventStats(request.params.id, request.query)
-            .then((err, docs) => reply(docs))
+            .then(docs=> reply(docs))
             .catch(err => reply(Boom.badImplementation('Failed to retrieve event count', err)));
 
     }

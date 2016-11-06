@@ -22,6 +22,11 @@ const authenticateApplication = db => co.wrap(function* (id, password) {
     } // TODO add hashing
 });
 
+const getApplication = db => (id) => {
+    const collection = db().collection('applications');
+    return collection.find({id}, {password: 0}).limit(1).next();
+};
+
 const getApplications = db => () => {
     const collection = db().collection('applications');
     return collection.find({}, {password: 0}).toArray();
@@ -96,6 +101,7 @@ module.exports = {
     registerApplication,
     removeApplication,
     isAppIdValid,
+    getApplication,
     getApplications,
     authenticateApplication,
     addEventsFilter,
