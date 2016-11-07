@@ -1,5 +1,6 @@
 {
   "serverPort": 4000,
   "dbHost": "localhost:27017",
-  "dbName": "tellor"
+  "dbName": "tellor",
+  "authSecret": "NeverShareYourSecret"
 }

@@ -1,5 +1,7 @@
 const Hapi = require('hapi');
 const Good = require('good');
+const JWTAuth = require('hapi-auth-jwt2');
+const auth = require('./lib/auth');
 const config = require('../config');
 
 const routes = require('./routes');
@@ -7,8 +9,6 @@ const routes = require('./routes');
 const server = new Hapi.Server();
 
 server.connection({port: config.serverPort, routes: {cors: true}});
-server.route(routes);
-
 
 if (process.env.NODE_ENV !== 'test') {
     server.register({
@@ -33,7 +33,33 @@ if (process.env.NODE_ENV !== 'test') {
             throw err; // something bad happened loading the plugin
         }
     });
+
+
+    server.register(JWTAuth, function(err) {
+        if (err) {
+            throw err;
+        }
+
+        server.auth.strategy('jwt', 'jwt',
+            {
+                key: config.authSecret,
+                validateFunc: auth.validate,
+                verifyOptions: {algorithms: ['HS256']}
+            });
+
+        server.auth.default('jwt');
+
+        server.route(routes);
+    });
+
+    server.ext('onPreResponse', (request, reply) => {
+        if (request.response.isBoom && request.response.output.statusCode === 401) { // unauthorized
+            return reply.redirect('/login');
+        }
+        reply.continue()
+    })
 }
+
 
 module.exports = (cb) => {
     server.start((err) => {
