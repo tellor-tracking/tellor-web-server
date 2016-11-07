@@ -103,4 +103,9 @@ describe('Api:Events:Input', () =>{
         expect(stats.segmentation.isNice[0]).to.have.property('no').that.equals(1);
     });
 
+
+    it('should add logged event to count and segmentation stats by multiple filters', async () =>{
+        // TODO
+    });
+
 });

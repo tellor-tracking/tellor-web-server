@@ -2,6 +2,8 @@ const c = require('chance').Chance();
 const db = require('../src/db');
 const moment = require('moment');
 
+const ips = [c.ip(), c.ip()];
+
 function getFakeEvents(numberOfEvents, numberOfDifferentEvents, days, appId) {
 
     const timestamps = [];
@@ -36,8 +38,8 @@ function getFakeEvents(numberOfEvents, numberOfDifferentEvents, days, appId) {
             name: name,
             segmentation: getSegmentation(name),
             meta: {
-                ip: c.ip(),
-                appVersion: c.pickone(['1', '2', '3a']),
+                ip: c.pickone(ips),
+                appVersion: c.pickone(['1', '2a', '3b']),
                 timestamp:  c.pickone(timestamps),
                 sdk: 'web'
             },
@@ -75,12 +77,11 @@ console.log(appName, name1, name2, name3);
     db.connect(()=> {
         db.registerApplication(appName, appName)
             .then(({id})=> {
-                db.addEventsFilter(id, {filterValue: 'ip=111.222.333'})
+                db.addEventsFilter(id, {filterValue: `ip=${ips[0]}`})
                     .then(() => db.addEventsFilter(id, {filterValue: 'appVersion=1'}))
                     .then(() => db.addEventsFilter(id, {filterValue: 'appVersion=2a'}))
-                    .then(() => db.addEventsFilter(id, {filterValue: 'appVersion=2b'}))
-                    .then(() => db.addEventsFilter(id, {filterValue: 'ip=1234.223.4.5'}))
-                    .then(() => db.insertTrackEvents(getFakeEvents(40000, 20, 60, id), id))
+                    .then(() => db.addEventsFilter(id, {filterValue: 'appVersion=3b'}))
+                    .then(() => db.insertTrackEvents(getFakeEvents(5000, 10, 20, id), id))
             });
 
         if (name1) {

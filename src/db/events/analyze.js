@@ -117,7 +117,18 @@ function getEventStats(db) {
 
         const collection = db().collection('eventsCounts');
         return collection.findOne({id: `${eventId}:filters:${filtersQuery}`})
-            .then((doc => formatEventForClient(doc, reduceDateRangeFactory({startDate, endDate}))))
+            .then((doc => {
+                if (doc) {
+                    return formatEventForClient(doc, reduceDateRangeFactory({startDate, endDate}));
+                }
+
+                return {
+                    totalCount: 0,
+                    count: [],
+                    segmentation: {}
+                };
+                // TODO fix me when no data for event
+            }))
     }
 }
 
