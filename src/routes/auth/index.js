@@ -2,15 +2,6 @@ const jwt = require('jwt-simple');
 const config = require('../../../config');
 const Boom = require('boom');
 
-const loginPage = {
-    method: 'GET',
-    path: '/login',
-    config: {auth: false},
-    handler(request, reply) {
-        reply('logni page');
-    }
-};
-
 const authenticate = {
     method: 'POST',
     path: '/authenticate',
@@ -23,8 +14,9 @@ const authenticate = {
             return reply(new Boom.badData('Bad credentials'));
         }
 
-        reply.redirect('/app').header('Authorization', jwt.encode({account, password}, config.authSecret));
+        reply({isSuccessful: true, account: account})
+            .header('Authorization', jwt.encode({account, password}, config.authSecret));
     }
 };
 
-module.exports = [loginPage, authenticate];
+module.exports = [authenticate];

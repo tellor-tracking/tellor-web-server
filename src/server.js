@@ -8,7 +8,18 @@ const routes = require('./routes');
 
 const server = new Hapi.Server();
 
-server.connection({port: config.serverPort, routes: {cors: true}});
+server.connection({
+    port: config.serverPort,
+    routes: {
+        cors: {
+            origin: ['*'],
+            maxAge: 86400,
+            headers: ['Accept', 'Authorization', 'Content-Type', 'If-None-Match'],
+            exposedHeaders: ['WWW-Authenticate', 'Server-Authorization', 'Authorization'],
+            credentials: true
+        }
+    }
+});
 
 if (process.env.NODE_ENV !== 'test') {
     server.register({
@@ -53,9 +64,9 @@ if (process.env.NODE_ENV !== 'test') {
     });
 
     server.ext('onPreResponse', (request, reply) => {
-        if (request.response.isBoom && request.response.output.statusCode === 401) { // unauthorized
-            return reply.redirect('/login');
-        }
+        /*        if (request.response.isBoom && request.response.output.statusCode === 401) { // unauthorized
+         return reply.redirect('/login');
+         }*/
         reply.continue()
     })
 }

@@ -1,4 +1,5 @@
 const rc = require('rc');
+const crypto = require('crypto');
 const pckg = require('./package.json');
 
 let name = pckg.name;
@@ -11,7 +12,7 @@ module.exports = rc(name, {
    "serverPort": 4000,
     "dbHost": "localhost:27017",
     "dbName": "tellor",
-    "authSecret": "NeverShareYourSecret",
-    "defaultUser": "Admin",
-    "defaultUserPassword": "Admin"
+    "authSecret": crypto.randomBytes(256).toString('base64'),
+    "defaultUser": "admin",
+    "defaultUserPassword": "admin"
 });

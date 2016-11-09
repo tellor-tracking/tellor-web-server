@@ -18,7 +18,6 @@ const getApplication = {
 const getApplications = {
     path: '/api/applications',
         method: 'GET',
-        config: {auth: 'jwt'},
         handler(request, reply) {
 
         db.getApplications()
