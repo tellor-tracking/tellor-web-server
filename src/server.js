@@ -1,8 +1,10 @@
 const Hapi = require('hapi');
 const Good = require('good');
 const JWTAuth = require('hapi-auth-jwt2');
+const inert = require('inert');
 const auth = require('./lib/auth');
 const config = require('../config');
+const path = require('path');
 
 const routes = require('./routes');
 
@@ -17,8 +19,33 @@ server.connection({
             headers: ['Accept', 'Authorization', 'Content-Type', 'If-None-Match'],
             exposedHeaders: ['WWW-Authenticate', 'Server-Authorization', 'Authorization'],
             credentials: true
+        },
+        files: {
+            relativeTo: path.join(__dirname, '../public')
         }
     }
+});
+
+
+server.register(inert, (err) => {
+
+    if (err) {
+        throw err;
+    }
+
+    // serve static files
+    server.route({
+        method: 'GET',
+        path: '/public/{filename*}',
+        config: {auth: false},
+        handler: {
+            file: function(request) {
+                return request.params.filename;
+            }
+        }
+    });
+
+
 });
 
 if (process.env.NODE_ENV !== 'test') {
