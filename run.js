@@ -8,7 +8,7 @@ pm2.connect(err => {
 
     console.log('Starting server');
     pm2.start({
-        script: 'index.js',
+        script: __dirname + '/index.js',
         name: 'tellor',
         max_memory_restart: '6000M',
         // output: '/var/log/tellor/tellor.pm2.log',
