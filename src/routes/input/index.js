@@ -35,6 +35,7 @@ function getFormattedTrackObjects(requestQuery, extractedAnalytics, utcTimeStamp
 const trackEvent = {
     method: 'GET',
     path: '/track',
+    config: {auth: false},
     handler(request, reply) {
         reply();
 
