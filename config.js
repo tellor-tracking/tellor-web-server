@@ -9,7 +9,7 @@ if (process.env.NODE_ENV === 'test') {
 }
 
 module.exports = rc(name, {
-    "serverPort": 4000,
+    "serverPort": 3000,
     "dbHost": "localhost:27017",
     "dbName": "tellor",
     "authSecret": crypto.randomBytes(256).toString('base64'),
