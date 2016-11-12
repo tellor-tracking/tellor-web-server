@@ -8,7 +8,7 @@ module.exports = {
     // First application
     {
       name      : "tellor",
-      script    : "index.js",
+      script    : __dirname + "index.js",
       max_memory_restart: '6000M',
       env_production : {
         NODE_ENV: "production"
