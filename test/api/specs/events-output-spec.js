@@ -24,7 +24,7 @@ describe('Api:Events:Output', () => {
         const r = await db.registerApplication('TestName', 'TestPassword');
         appId = r.id;
 
-        await addFilters(dbConnection, appId, ips, appVersions);
+        await addFilters(db, appId, ips, appVersions);
         await db.insertTrackEvents(getFakeEvents(10, 2, 5, appId, ips, appVersions));
     });
 

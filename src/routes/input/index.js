@@ -11,7 +11,7 @@ function getUtcTimeStamp() {
 
 function getAnalyticsData(request) {
     return {
-        ip: request.info.remoteAddress
+        ip: request.raw.req.headers['x-real-ip'] // since we are under reverse nginx proxy we save real ip in header
     }
 }
 
