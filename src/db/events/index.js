@@ -1,1 +1,1 @@
-module.exports = Object.assign({}, require('./analyze'), require('./read'), require('./write'));
+module.exports = Object.assign({}, require('./analyze'), require('./output'), require('./input'));

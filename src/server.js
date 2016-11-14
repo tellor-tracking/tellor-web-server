@@ -39,7 +39,7 @@ server.register(inert, (err) => {
         path: '/public/{filename*}',
         config: {auth: false},
         handler: {
-            file: function(request) {
+            file(request) {
                 return request.params.filename;
             }
         }
@@ -68,12 +68,12 @@ if (process.env.NODE_ENV !== 'test') {
     }, (err) => {
 
         if (err) {
-            throw err; // something bad happened loading the plugin
+            throw err;
         }
     });
 
 
-    server.register(JWTAuth, function(err) {
+    server.register(JWTAuth, (err) => {
         if (err) {
             throw err;
         }
@@ -85,17 +85,12 @@ if (process.env.NODE_ENV !== 'test') {
                 verifyOptions: {algorithms: ['HS256']}
             });
 
-        server.auth.default('jwt');
 
+        server.auth.default('jwt');
         server.route(routes);
     });
-
-    server.ext('onPreResponse', (request, reply) => {
-        /*        if (request.response.isBoom && request.response.output.statusCode === 401) { // unauthorized
-         return reply.redirect('/login');
-         }*/
-        reply.continue()
-    })
+} else {
+    server.route(routes);
 }
 
 

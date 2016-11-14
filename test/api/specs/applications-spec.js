@@ -1,4 +1,3 @@
-const utils = require('../../utils');
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const db = require('../../../src/db/index');
