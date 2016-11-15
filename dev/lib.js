@@ -3,13 +3,18 @@ const moment = require('moment');
 
 function getFakeEvents(numberOfEvents, numberOfDifferentEvents, days, appId, ips = [12345679], appVersion = [1]) {
 
-    const timestamps = [];
+    let timestamps = [];
     const d = moment();
-    while (days--) {
-        timestamps.push(d.clone().subtract(days, 'days').format());
+
+    if (Array.isArray(days)) {
+        timestamps = days
+    } else {
+        while (days--) {
+            timestamps.push(d.clone().subtract(days, 'days').format());
+        }
     }
 
-    const eventNames = c.unique(c.name, numberOfDifferentEvents);
+    const eventNames = Array.isArray(numberOfDifferentEvents) ? numberOfDifferentEvents : c.unique(c.name, numberOfDifferentEvents);
 
     const segmentationKeysByName = eventNames.reduce((seg, name) => {
         seg[name] = c.unique(c.word, c.d6()).reduce((s, sk) => {

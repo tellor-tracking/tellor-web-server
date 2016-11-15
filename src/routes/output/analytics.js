@@ -2,7 +2,7 @@ const db = require('../../db');
 const Boom = require('boom');
 
 const getEventCount = {
-    path: '/api/events/{id}/count',
+    path: '/api/events/{id}/stats',
     method: 'GET',
     handler(request, reply) {
 

@@ -25,7 +25,7 @@ describe('Api:Events:Input', () =>{
         await chai.request(serverUri)
             .get(`/track?app_key=${appId}&app_version=1&sdk=web&events=${JSON.stringify([{name: 'Test', segmentation: {seg: 'abc'}}, {name: 'TestTwo'}])}`);
 
-        await utils.sleep(100);
+        await utils.sleep(150);
 
         const events = await db.getEvents(appId);
         expect(events).to.have.length(2);
