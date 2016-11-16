@@ -1,6 +1,5 @@
 const md5 = require('md5');
-const co = require('co');
-
+const async = require('async');
 function addGUIDs(appId, events) {
     for (let event of events) {
         event.id = md5(appId + event.name);
@@ -25,16 +24,15 @@ function constructIncrementObject(segmentation, timeStamp) {
 function incrementStats(events, db) {
     const collection = db.collection(`eventsCounts`);
 
-    for (let event of events) {
-        collection.updateOne(
-            {id: `${event.id}:filters:none`},
-            {
-                $inc: constructIncrementObject(event.segmentation, event.meta.timestamp),
-                $setOnInsert: {appId: event.appId, name: event.name}
-            },
-            {upsert: true}
-        )
-    }
+    async.series(events.map(event => done => collection.updateOne(
+        {id: `${event.id}:filters:none`},
+        {
+            $inc: constructIncrementObject(event.segmentation, event.meta.timestamp),
+            $setOnInsert: {appId: event.appId, name: event.name}
+        },
+        {upsert: true},
+        done
+    )));
 }
 
 /* INCREMENT BY FILTERS */
@@ -113,9 +111,9 @@ function doesEventPassFilters(event, filters) {
 function incrementStatsByFilters(filters, events, db) {
     const collection = db.collection(`eventsCounts`);
 
-    for (let event of events) {
+    async.series(events.map(event => done => {
         if (!doesEventPassFilters(event, filters)) {
-            continue;
+            return done();
         }
 
         collection.updateOne(
@@ -124,13 +122,13 @@ function incrementStatsByFilters(filters, events, db) {
                 $inc: constructIncrementObject(event.segmentation, event.meta.timestamp),
                 $setOnInsert: {appId: event.appId, name: event.name}
             },
-            {upsert: true}
+            {upsert: true},
+            done
         )
-    }
+    }));
 }
 
 /* INCREMENT BY FILTERS - END */
-
 
 
 function updateFieldsModel(events, db) {
@@ -140,16 +138,14 @@ function updateFieldsModel(events, db) {
 
     const collection = db.collection('eventsFields');
 
-    for (let event of events) {
-        collection.updateOne(
-            {id: event.id},
-            {
-                $addToSet: {segmentation: {$each: Object.keys(event.segmentation || {})}},
-                $setOnInsert: {meta: ['ip', 'appVersion', 'timeStamp', 'sdk'], name: event.name, appId: event.appId}
-            },
-            {upsert: true}
-        )
-    }
+    async.series(events.map(event => done => collection.updateOne(
+        {_id: event.id},
+        {
+            $addToSet: {segmentation: {$each: Object.keys(event.segmentation || {})}},
+            $setOnInsert: {meta: ['ip', 'appVersion', 'timeStamp', 'sdk'], name: event.name, appId: event.appId}
+        },
+        {upsert: true}, done
+    )));
 }
 
 
