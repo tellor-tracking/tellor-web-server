@@ -24,15 +24,17 @@ function constructIncrementObject(segmentation, timeStamp) {
 function incrementStats(events, db) {
     const collection = db.collection(`eventsCounts`);
 
-    async.series(events.map(event => done => collection.updateOne(
-        {id: `${event.id}:filters:none`},
-        {
-            $inc: constructIncrementObject(event.segmentation, event.meta.timestamp),
-            $setOnInsert: {appId: event.appId, name: event.name}
-        },
-        {upsert: true},
-        done
-    )));
+    return new Promise((resolve, reject) => {
+        async.series(events.map(event => done => collection.updateOne(
+            {id: `${event.id}:filters:none`},
+            {
+                $inc: constructIncrementObject(event.segmentation, event.meta.timestamp),
+                $setOnInsert: {appId: event.appId, name: event.name}
+            },
+            {upsert: true},
+            done
+        )), (err, res) => err ? reject(err) : resolve());
+    });
 }
 
 /* INCREMENT BY FILTERS */
@@ -111,21 +113,24 @@ function doesEventPassFilters(event, filters) {
 function incrementStatsByFilters(filters, events, db) {
     const collection = db.collection(`eventsCounts`);
 
-    async.series(events.map(event => done => {
-        if (!doesEventPassFilters(event, filters)) {
-            return done();
-        }
+    return new Promise((resolve, reject) => {
+        async.series(events.map(event => done => {
+            if (!doesEventPassFilters(event, filters)) {
+                return done();
+            }
 
-        collection.updateOne(
-            {id: `${event.id}:filters:${filters.map(f => f.id).join('-')}`},
-            {
-                $inc: constructIncrementObject(event.segmentation, event.meta.timestamp),
-                $setOnInsert: {appId: event.appId, name: event.name}
-            },
-            {upsert: true},
-            done
-        )
-    }));
+            collection.updateOne(
+                {id: `${event.id}:filters:${filters.map(f => f.id).join('-')}`},
+                {
+                    $inc: constructIncrementObject(event.segmentation, event.meta.timestamp),
+                    $setOnInsert: {appId: event.appId, name: event.name}
+                },
+                {upsert: true},
+                done
+            )
+        }), (err, res) => err ? reject(err) : resolve());
+    })
+
 }
 
 /* INCREMENT BY FILTERS - END */
@@ -138,14 +143,17 @@ function updateFieldsModel(events, db) {
 
     const collection = db.collection('eventsFields');
 
-    async.series(events.map(event => done => collection.updateOne(
-        {_id: event.id},
-        {
-            $addToSet: {segmentation: {$each: Object.keys(event.segmentation || {})}},
-            $setOnInsert: {meta: ['ip', 'appVersion', 'timeStamp', 'sdk'], name: event.name, appId: event.appId}
-        },
-        {upsert: true}, done
-    )));
+    return new Promise((resolve, reject) => {
+        async.series(events.map(event => done => collection.updateOne(
+            {_id: event.id},
+            {
+                $addToSet: {segmentation: {$each: Object.keys(event.segmentation || {})}},
+                $setOnInsert: {meta: ['ip', 'appVersion', 'timeStamp', 'sdk'], name: event.name, appId: event.appId}
+            },
+            {upsert: true}, done
+        )), (err, res) => err ? reject(err) : resolve());
+    });
+
 }
 
 
@@ -154,17 +162,14 @@ function insertTrackEvents(getDb) {
         const db = getDb();
         addGUIDs(appId, events);
 
-        db.collection('events').insertMany(events, (err, result) => {
-            if (err) {
-                console.error(`Failed to insert events ${JSON.stringify(events)}`, err);
-            }
-
-            console.log('Successfully inserted track events');
-
-            updateFieldsModel(events, db);
-            incrementStats(events, db);
-            incrementStatsByEventsFilters(appId, events, db);
-        })
+        return db.collection('events').insertMany(events)
+            .then(() => Promise.all([
+                updateFieldsModel(events, db),
+                incrementStats(events, db),
+                incrementStatsByEventsFilters(appId, events, db)
+            ]))
+            .then(() => console.log('Successfully inserted track events'))
+            .catch(err => console.error(`Failed to insert events ${JSON.stringify(events)}`, err))
     }
 }
 
