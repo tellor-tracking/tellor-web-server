@@ -3,7 +3,7 @@ const db = require('../src/db');
 const {getFakeEvents, addFilters} = require('./lib');
 
 const ips = [c.ip(), c.ip()];
-const appVersions = ['1a', '2', '3'];
+const appVersions = ['1a', '2', '3',54,4444.55555,666,7777,'sdfsdf22',55551,'5e7'];
 
 
 function clearAllCollections(cb) {
@@ -31,33 +31,13 @@ function clearAllCollections(cb) {
 
 function createEventsForApplication(appName, name1, name2, name3) {
 console.log(appName, name1, name2, name3);
-    db.connect(()=> {
+    db.connect((c)=> {
         db.registerApplication(appName, appName)
             .then(({id}) => {
                 addFilters(db, id, ips, appVersions)
-                    .then(() => db.insertTrackEvents(getFakeEvents(5000, 10, 30, id, ips, appVersions), id));
-            });
-
-        if (name1) {
-            db.registerApplication(name1, name1)
-                .then(({id})=> {
-                    db.insertTrackEvents(getFakeEvents(10000, 10, 30, id, ips, appVersions), id);
-                });
-        }
-
-        if (name2) {
-            db.registerApplication(name2, name2)
-                .then(({id})=> {
-                    db.insertTrackEvents(getFakeEvents(10000, 10, 30, id, ips, appVersions), id);
-                });
-        }
-
-        if (name3) {
-            db.registerApplication(name3, name3)
-                .then(({id})=> {
-                    db.insertTrackEvents(getFakeEvents(10000, 10, 30, id, ips, appVersions), id);
-                });
-        }
+                    .then(() => db.insertTrackEvents(id, getFakeEvents(2000, 10, 30, id, ips, appVersions)))
+                    .then(() => c.close());
+            })
     });
 
 }

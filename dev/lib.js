@@ -1,7 +1,8 @@
 const c = require('chance').Chance();
 const moment = require('moment');
+const async = require('async');
 
-function getFakeEvents(numberOfEvents, numberOfDifferentEvents, days, appId, ips = [12345679], appVersion = [1]) {
+function getFakeEvents(numberOfEvents, numberOfDifferentEvents, days, appId, ips = [12345679], appVersion = [187]) {
 
     let timestamps = [];
     const d = moment();
@@ -42,7 +43,7 @@ function getFakeEvents(numberOfEvents, numberOfDifferentEvents, days, appId, ips
             meta: {
                 ip: c.pickone(ips),
                 appVersion: c.pickone(appVersion),
-                timestamp:  c.pickone(timestamps),
+                timestamp: c.pickone(timestamps),
                 sdk: 'web'
             },
             appId: appId
@@ -53,8 +54,18 @@ function getFakeEvents(numberOfEvents, numberOfDifferentEvents, days, appId, ips
 }
 
 function addFilters(db, appId, ipFilters = [], appFilters = []) {
-    return Promise.all(ipFilters.map(f => db.addEventsFilter(appId, {filterValue: `ip=${f}`})))
-        .then(() => Promise.all(appFilters.map(f => db.addEventsFilter(appId, {filterValue: `appVersion=${f}`}))))
+    return new Promise((res, rej) => {
+        const c = [
+            ...ipFilters.map(f => (done) => {
+                db.addEventsFilter(appId, {filterValue: `ip=${f}`}).then(() => done(null));
+            }),
+            ...appFilters.map(f => (done) => {
+                db.addEventsFilter(appId, {filterValue: `appVersion=${f}`}).then(() => done(null));
+            })
+        ];
+
+        async.series(c, res);
+    })
 }
 
 

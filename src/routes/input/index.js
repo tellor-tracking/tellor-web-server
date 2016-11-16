@@ -50,7 +50,7 @@ const trackEvent = {
                 if (!isValid) return console.error('Invalid app key');
 
                 const trackEvents = getFormattedTrackObjects(request.query, getAnalyticsData(request), getUtcTimeStamp());
-                db.insertTrackEvents(trackEvents, appKey);
+                db.insertTrackEvents(appKey, trackEvents);
             })
             .catch(err => {
                 console.error('Track failed, due to error', err);

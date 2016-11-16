@@ -1,5 +1,6 @@
 const md5 = require('md5');
 const async = require('async');
+
 function addGUIDs(appId, events) {
     for (let event of events) {
         event.id = md5(appId + event.name);
@@ -158,7 +159,7 @@ function updateFieldsModel(events, db) {
 
 
 function insertTrackEvents(getDb) {
-    return function(events, appId) {
+    return function(appId, events) {
         const db = getDb();
         addGUIDs(appId, events);
 
@@ -169,7 +170,7 @@ function insertTrackEvents(getDb) {
                 incrementStatsByEventsFilters(appId, events, db)
             ]))
             .then(() => console.log('Successfully inserted track events'))
-            .catch(err => console.error(`Failed to insert events ${JSON.stringify(events)}`, err))
+            .catch(err => console.error(`Failed to insert events ${JSON.stringify(events)}`, err));
     }
 }
 
