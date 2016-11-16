@@ -9,7 +9,7 @@ const {getFakeEvents, addFilters} = require('../../../dev/lib');
 chai.use(chaiHttp);
 
 
-describe('Api:Events:Output', () => {
+describe.only('Api:Events:Output', () => {
 
     let ips = ['1111.222.33', '2222.444.555'];
     let appVersions = ['1', '2.2'];
@@ -22,45 +22,53 @@ describe('Api:Events:Output', () => {
         serverUri = global.serverUri;
         dbConnection = db.getDb();
     });
+
     beforeEach(async () => {
-        const r = await db.registerApplication('TestName', 'TestPassword');
+        const r = await db.registerApplication('TestName' + Math.random(), 'TestPassword');
         appId = r.id;
 
         await addFilters(db, appId, ips, appVersions);
     });
 
     it('should return list of events with their segmentations', async () => {
-        await db.insertTrackEvents(getFakeEvents(10, 2, 5, appId, ips, appVersions), appId);
+        await db.insertTrackEvents(getFakeEvents(10, 1, 5, appId, ips, appVersions), appId);
         const res = await chai.request(serverUri).get(`/api/applications/${appId}/events`);
 
-        expect(res).to.have.status(200);
         expect(res.body).to.be.an.array;
         res.body.forEach(ev => {
             expect(ev).to.have.property('name');
             expect(ev).to.have.property('meta').that.is.an.array;
-            expect(ev).to.have.property('id');
+            expect(ev).to.have.property('_id');
             expect(ev).to.have.property('appId');
             expect(ev).to.have.property('segmentation').that.is.an.array;
         });
     });
 
-    it('should return error 4xx if appId is invalid', () => {
+    it('should return empty array if appId is invalid', async () => {
+        const res = await chai.request(serverUri).get(`/api/applications/invalidAppId/events`);
 
+        expect(res.body).to.be.instanceOf(Array).that.has.length(0);
+    });
+
+    it('should return empty array if app has no events is invalid', async () => {
+        const res = await chai.request(serverUri).get(`/api/applications/${appId}/events`);
+
+        expect(res.body).to.be.instanceOf(Array).that.has.length(0);
     });
 
     it('should return stats with segmentation for event id', async () => {
-        await db.insertTrackEvents(getFakeEvents(10, 2, 5, appId, ips, appVersions), appId);
+        await db.insertTrackEvents(getFakeEvents(10, ['NameOne'], 5, appId, ips, appVersions), appId);
         const res = await chai.request(serverUri).get(`/api/applications/${appId}/events`);
         const event = res.body[0];
-        const eventStats = await chai.request(serverUri).get(`/api/events/${event.id}/stats`);
-        expect(eventStats).to.have.status(200);
+        const eventStats = await chai.request(serverUri).get(`/api/events/${event._id}/stats`);
 
-        expect(eventStats.body).to.have.property('appId').that.equals(appId);
+        expect(event.name).to.equal('NameOne');
         expect(eventStats.body).to.have.property('name').that.equals(event.name);
-        expect(eventStats.body).to.have.property('id').that.equals(`${event.id}:filters:none`);
+        expect(eventStats.body).to.have.property('appId').that.equals(appId);
+        expect(eventStats.body).to.have.property('id').that.equals(`${event._id}:filters:none`);
 
         expect(eventStats.body).to.have.property('count');
-        expect(eventStats.body).to.have.property('totalCount');
+        expect(eventStats.body).to.have.property('totalCount').that.equals(10);
         expect(eventStats.body.count[0]).to.have.property('date');
         expect(eventStats.body.count[0]).to.have.property('count');
 
@@ -70,15 +78,35 @@ describe('Api:Events:Output', () => {
 
     it('should filter stats by date', async () => {
         const today = moment().format();
+        const plusOneDays = moment().add(1, 'days').format();
         const plusTwoDays = moment().add(2, 'days').format();
+        const minusOneDays = moment().subtract(1, 'days').format();
         const minusTwoDays = moment().subtract(2, 'days').format();
 
-        await db.insertTrackEvents(getFakeEvents(10, 1, [today], appId, ips, appVersions));
-        // await db.insertTrackEvents(b);
-        // await db.insertTrackEvents(c);
-        const res = await chai.request(serverUri).get(`/api/applications/${appId}/events`);
+        await db.insertTrackEvents(getFakeEvents(10, ['One'], [today], appId, ips, appVersions));
+        await db.insertTrackEvents(getFakeEvents(5, ['One'], [plusOneDays], appId, ips, appVersions));
+        await db.insertTrackEvents(getFakeEvents(10, ['One'], [plusTwoDays], appId, ips, appVersions));
+        await db.insertTrackEvents(getFakeEvents(5, ['One'], [minusOneDays], appId, ips, appVersions));
+        await db.insertTrackEvents(getFakeEvents(10, ['One'], [minusTwoDays], appId, ips, appVersions));
 
-        // add some events at some date, some ant other query it
+        const res = await chai.request(serverUri).get(`/api/applications/${appId}/events`);
+        const event = res.body[0];
+
+        // make sure all events were registered
+        const {body: stats1} = await chai.request(serverUri).get(`/api/events/${event._id}/stats`);
+        expect(stats1.totalCount).to.equal(40);
+
+        // make sure startDate works
+        const {body: stats2} = await chai.request(serverUri).get(`/api/events/${event._id}/stats?startDate=${today.split('T')[0]}`);
+        expect(stats2.totalCount).to.equal(25);
+
+        // make sure endDate works
+        const {body: stats3} = await chai.request(serverUri).get(`/api/events/${event._id}/stats?endDate=${minusTwoDays.split('T')[0]}`);
+        expect(stats3.totalCount).to.equal(10);
+
+        // make sure both together work
+        const {body: stats4} = await chai.request(serverUri).get(`/api/events/${event._id}/stats?startDate=${minusOneDays.split('T')[0]}&endDate=${plusOneDays.split('T')[0]}`);
+        expect(stats4.totalCount).to.equal(20);
     });
 
     it('should filter stats by filters', async () => {

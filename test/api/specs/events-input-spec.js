@@ -25,7 +25,7 @@ describe('Api:Events:Input', () =>{
         await chai.request(serverUri)
             .get(`/track?app_key=${appId}&app_version=1&sdk=web&events=${JSON.stringify([{name: 'Test', segmentation: {seg: 'abc'}}, {name: 'TestTwo'}])}`);
 
-        await utils.sleep(150);
+        await utils.sleep(200);
 
         const events = await db.getEvents(appId);
         expect(events).to.have.length(2);
@@ -64,7 +64,7 @@ describe('Api:Events:Input', () =>{
         await utils.sleep(100);
 
         const events = await db.getEvents(appId);
-        const eventId = events[0].id;
+        const eventId = events[0]._id;
 
         const stats = await db.getEventStats(eventId);
         expect(stats.totalCount).to.equal(2);
@@ -78,7 +78,7 @@ describe('Api:Events:Input', () =>{
         await utils.sleep(100);
 
         const events = await db.getEvents(appId);
-        const eventId = events[0].id;
+        const eventId = events[0]._id;
 
         const stats = await db.getEventStats(eventId);
         expect(stats.segmentation.isNice[0]).to.have.property('yes').that.equals(2);
@@ -96,7 +96,7 @@ describe('Api:Events:Input', () =>{
         await utils.sleep(100);
 
         const events = await db.getEvents(appId);
-        const eventId = events[0].id;
+        const eventId = events[0]._id;
 
         const stats = await db.getEventStats(eventId, {filters: filterId});
         expect(stats.segmentation.isNice[0]).to.have.property('yes').that.equals(2);
