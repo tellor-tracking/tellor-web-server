@@ -11,8 +11,8 @@ function clearAllCollections(cb) {
 
     d.collection('events').drop(()=> {
         console.log('events dropped');
-        d.collection('eventsCounts').drop(()=> {
-            console.log('eventsCounts dropped');
+        d.collection('eventsStats').drop(()=> {
+            console.log('eventsStats dropped');
             d.collection('eventsFields').drop(()=> {
                 console.log('eventsFields dropped');
                 d.collection('applications').drop(()=> {

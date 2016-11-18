@@ -16,7 +16,7 @@ const getFilter = (filters, filter, value) => filters.reduce((res, val) => {
 }, null);
 
 
-describe.only('Api:Events:Output', () => {
+describe('Api:Events:Output', () => {
 
     let serverUri;
     let dbConnection;
@@ -31,7 +31,7 @@ describe.only('Api:Events:Output', () => {
         const r = await db.registerApplication('TestName', 'TestPassword');
         appId = r.id;
     });
-    
+
     it('should return list of events with their segmentations', async () => {
         await db.insertTrackEvents(appId, getFakeEvents(10, 1, 5, appId), appId);
         const res = await chai.request(serverUri).get(`/api/applications/${appId}/events`);
@@ -82,34 +82,40 @@ describe.only('Api:Events:Output', () => {
         const today = moment().format();
         const plusOneDays = moment().add(1, 'days').format();
         const plusTwoDays = moment().add(2, 'days').format();
+        const plusOneYears = moment().add(1, 'years').format();
         const minusOneDays = moment().subtract(1, 'days').format();
         const minusTwoDays = moment().subtract(2, 'days').format();
+        const minusOneYears = moment().subtract(1, 'years').format();
 
         await db.insertTrackEvents(appId, getFakeEvents(10, ['One'], [today], appId));
         await db.insertTrackEvents(appId, getFakeEvents(5, ['One'], [plusOneDays], appId));
         await db.insertTrackEvents(appId, getFakeEvents(10, ['One'], [plusTwoDays], appId));
+        await db.insertTrackEvents(appId, getFakeEvents(77, ['One'], [plusOneYears], appId));
         await db.insertTrackEvents(appId, getFakeEvents(5, ['One'], [minusOneDays], appId));
         await db.insertTrackEvents(appId, getFakeEvents(10, ['One'], [minusTwoDays], appId));
+        await db.insertTrackEvents(appId, getFakeEvents(56, ['One'], [minusOneYears], appId));
 
         const res = await chai.request(serverUri).get(`/api/applications/${appId}/events`);
         const event = res.body[0];
 
         // make sure all events were registered
         const {body: stats1} = await chai.request(serverUri).get(`/api/events/${event._id}/stats`);
-        expect(stats1.totalCount).to.equal(40);
+        expect(stats1.totalCount).to.equal(173);
 
         // make sure startDate works
         const {body: stats2} = await chai.request(serverUri).get(`/api/events/${event._id}/stats?startDate=${today.split('T')[0]}`);
-        expect(stats2.totalCount).to.equal(25);
+        expect(stats2.totalCount).to.equal(102);
 
         // make sure endDate works
         const {body: stats3} = await chai.request(serverUri).get(`/api/events/${event._id}/stats?endDate=${minusTwoDays.split('T')[0]}`);
-        expect(stats3.totalCount).to.equal(10);
+        expect(stats3.totalCount).to.equal(66);
 
         // make sure both together work
         const {body: stats4} = await chai.request(serverUri).get(`/api/events/${event._id}/stats?startDate=${minusOneDays.split('T')[0]}&endDate=${plusOneDays.split('T')[0]}`);
         expect(stats4.totalCount).to.equal(20);
     });
+
+    //TODO add check for segmentation counts too
 
     it('should filter stats by ip filter', async () => {
         let ips = [['1111.222.33'], ['2222.444.555']];

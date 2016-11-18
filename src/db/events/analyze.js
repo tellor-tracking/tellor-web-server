@@ -1,5 +1,7 @@
 const moment = require('moment');
 const set = require('lodash/set');
+const utils = require('../utils');
+const deepmerge = require('deepmerge');
 
 /* FORMATTING & FILTERING */
 
@@ -109,15 +111,16 @@ function formatFilterByQuery(query) {
 
 /* QUERY FORMATTING - END */
 
-
 function getEventStats(db) {
     return function(eventId, {startDate, endDate, filters} = {}) {
 
         const filtersQuery = filters ? filters.replace(',', '-') : 'none';
 
-        const collection = db().collection('eventsCounts');
-        return collection.findOne({id: `${eventId}:filters:${filtersQuery}`})
+        return utils.getRelevantCollections(db(), 'eventsStats', startDate, endDate)
+            .then(collections => Promise.all(collections.map(c => c.findOne({id: `${eventId}:filters:${filtersQuery}`}))))
+            .then(objects => objects.length > 1 ? deepmerge.all(objects) : objects[0])
             .then((doc => {
+
                 if (doc) {
                     return formatEventForClient(doc, reduceDateRangeFactory({startDate, endDate}));
                 }

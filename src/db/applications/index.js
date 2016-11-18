@@ -42,13 +42,13 @@ const removeApplication = db => co.wrap(function* (id) {
     // remove app and all of its events
     const appCol = db().collection('applications');
     const eventsCol = db().collection('events');
-    const eventsCountsCol = db().collection('eventsCounts');
+    const eventsStatsCol = db().collection('eventsStats');
     const eventsFieldsCol = db().collection('eventsFields');
 
     yield [
          appCol.deleteOne({id}),
          eventsCol.deleteMany({appId: id}),
-         eventsCountsCol.deleteOne({appId: id}),
+         eventsStatsCol.deleteOne({appId: id}),
          eventsFieldsCol.deleteMany({appId: id})
     ];
 

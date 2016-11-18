@@ -1,5 +1,6 @@
 const md5 = require('md5');
 const async = require('async');
+const moment = require('moment');
 
 function addGUIDs(appId, events) {
     for (let event of events) {
@@ -23,7 +24,7 @@ function constructIncrementObject(segmentation, timeStamp) {
 
 
 function incrementStats(events, db) {
-    const collection = db.collection(`eventsCounts`);
+    const collection = db.collection(`eventsStats-${moment.utc().format('YYYY-MM')}`);
 
     return new Promise((resolve, reject) => {
         async.series(events.map(event => done => collection.updateOne(
@@ -112,7 +113,7 @@ function doesEventPassFilters(event, filters) {
 }
 
 function incrementStatsByFilters(filters, events, db) {
-    const collection = db.collection(`eventsCounts`);
+    const collection = db.collection(`eventsStats-${moment.utc().format('YYYY-MM')}`);
 
     return new Promise((resolve, reject) => {
         async.series(events.map(event => done => {
@@ -163,7 +164,7 @@ function insertTrackEvents(getDb) {
         const db = getDb();
         addGUIDs(appId, events);
 
-        return db.collection('events').insertMany(events)
+        return db.collection(`events-${moment.utc().format('YYYY-MM')}`).insertMany(events)
             .then(() => Promise.all([
                 updateFieldsModel(events, db),
                 incrementStats(events, db),
