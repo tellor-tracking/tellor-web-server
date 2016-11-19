@@ -10,9 +10,8 @@ function addGUIDs(appId, events) {
 
 
 function constructIncrementObject(segmentation, timeStamp) {
-    const date = timeStamp.split('T')[0];
+    const date = moment.utc(timeStamp).format('YYYY-MM-DD:HH');
     const obj = {[`count.${date}`]: 1};
-
     if (segmentation) {
         for (let key of Object.keys(segmentation)) {
             obj[`segmentation.${key}.${date}.${segmentation[key]}`] = 1

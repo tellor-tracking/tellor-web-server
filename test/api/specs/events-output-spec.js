@@ -58,7 +58,7 @@ describe('Api:Events:Output', () => {
         expect(res.body).to.be.instanceOf(Array).that.has.length(0);
     });
 
-    it('should return stats with segmentation for event id', async () => {
+    it('should return stats with segmentation', async () => {
         await db.insertTrackEvents(appId, getFakeEvents(10, ['NameOne'], 5, appId));
         const res = await chai.request(serverUri).get(`/api/applications/${appId}/events`);
         const event = res.body[0];
