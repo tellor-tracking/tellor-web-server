@@ -8,6 +8,8 @@ const URL = `mongodb://${config.dbHost}/${config.dbName}`;
 
 let database;
 
+const exportObj = Object.assign({connect, getDb}, provideDb(events), provideDb(applications));
+
 function connect(cb) {
     if (database !== undefined) {
         cb && cb();
@@ -28,14 +30,18 @@ function getDb() {
     return database
 }
 
+function getExportObj() {
+    return exportObj
+}
+
 function provideDb(fnsObj) {
     for (let key of Object.keys(fnsObj)) {
-        fnsObj[key] = fnsObj[key](()=> database)
+        fnsObj[key] = fnsObj[key](getDb, getExportObj)
     }
 
     return fnsObj;
 }
 
-module.exports = Object.assign({connect, getDb}, provideDb(events), provideDb(applications));
+module.exports = exportObj;
 
 

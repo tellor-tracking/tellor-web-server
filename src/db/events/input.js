@@ -1,6 +1,7 @@
 const md5 = require('md5');
 const async = require('async');
 const moment = require('moment');
+const filtersCore =  require('../../core/filters');
 
 function addGUIDs(appId, events) {
     for (let event of events) {
@@ -38,85 +39,25 @@ function incrementStats(events, db) {
     });
 }
 
-/* INCREMENT BY FILTERS */
 
-function getFilters(appId, db) {
-    // TODO this probably need to be at applications, need to make it easy to access db function from within db functions
+function incrementStatsByEventsFilters(appId, events, db, dbObj) {
 
-    const collection = db.collection('applications');
-    return collection.find({id: appId}).limit(1).next()
-        .then(doc => doc ? doc.eventsFilters : [])
-}
-
-function getAllFiltersCombinations(filters) {
-
-    const combinations = [];
-
-    const filterByType = filters
-        .reduce((types, filter) => {
-            const type = filter.filterValue.split('=')[0]; // ip, appVersion, ...
-            filter.type = type;
-            if (types[type]) {
-                types[type].push(filter);
-            } else {
-                types[type] = [filter];
-            }
-            return types;
-        }, {});
-
-    if (filterByType.ip) {
-        filterByType.ip.forEach(ipFilter => {
-            combinations.push([ipFilter]);
-
-            if (filterByType.appVersion) {
-                filterByType.appVersion.forEach(appVersionFilter => {
-                    combinations.push([ipFilter, appVersionFilter]);
-                });
-            }
-        })
-    }
-
-    if (filterByType.appVersion) {
-        filterByType.appVersion.forEach(appVersionFilter => {
-            combinations.push([appVersionFilter]);
-        });
-    }
-
-    return combinations;
-}
-
-function incrementStatsByEventsFilters(appId, events, db) {
-
-    getFilters(appId, db)
+    dbObj.getFilters(appId, db)
         .then(filters => {
-            const filtersCombinations = getAllFiltersCombinations(filters);
+            const filtersCombinations = filtersCore.getAllFiltersCombinations(filters);
 
-            filtersCombinations.forEach(combo => incrementStatsByFilters(combo, events, db));
+            filtersCombinations.forEach(combo => doFiltersIncremention(combo, events, db));
         })
         .catch(err => console.error('Failed to get filters', err));
 }
 
-function doesEventPassFilters(event, filters) {
-    const isNegative = filterValue => filterValue.indexOf('=!') > -1;
-    const getEqualityValues = (filterValue, isNegative) => filterValue.split(isNegative ? '=!' : '=')[1].split(','); // these values need to be escaped b4 this
 
-    function checkIfMatchFilter(type, filterValue) {
-        if (isNegative(filterValue)) {
-            return getEqualityValues(filterValue, true).every(val => event.meta[type] !== val);
-        } else {
-            return getEqualityValues(filterValue, false).every(val => event.meta[type] === val);
-        }
-    }
-
-    return filters.every(f => checkIfMatchFilter(f.type, f.filterValue));
-}
-
-function incrementStatsByFilters(filters, events, db) {
+function doFiltersIncremention(filters, events, db) {
     const collection = db.collection(`eventsStats-${moment.utc().format('YYYY-MM')}`);
 
     return new Promise((resolve, reject) => {
         async.series(events.map(event => done => {
-            if (!doesEventPassFilters(event, filters)) {
+            if (!filtersCore.doesEventPassFilters(event, filters)) {
                 return done();
             }
 
@@ -133,8 +74,6 @@ function incrementStatsByFilters(filters, events, db) {
     })
 
 }
-
-/* INCREMENT BY FILTERS - END */
 
 
 function updateFieldsModel(events, db) {
@@ -158,21 +97,20 @@ function updateFieldsModel(events, db) {
 }
 
 
-function insertTrackEvents(getDb) {
-    return function(appId, events) {
-        const db = getDb();
-        addGUIDs(appId, events);
+const insertTrackEvents = (db, getDbObj) => (appId, events) => {
+    const d = db();
+    addGUIDs(appId, events);
 
-        return db.collection(`events-${moment.utc().format('YYYY-MM')}`).insertMany(events)
-            .then(() => Promise.all([
-                updateFieldsModel(events, db),
-                incrementStats(events, db),
-                incrementStatsByEventsFilters(appId, events, db)
-            ]))
-            .then(() => console.log('Successfully inserted track events'))
-            .catch(err => console.error(`Failed to insert events ${JSON.stringify(events)}`, err));
-    }
-}
+    return d.collection(`events-${moment.utc().format('YYYY-MM')}`).insertMany(events)
+        .then(() => Promise.all([
+            updateFieldsModel(events, d),
+            incrementStats(events, d),
+            incrementStatsByEventsFilters(appId, events, d, getDbObj())
+        ]))
+        .then(() => console.log('Successfully inserted track events'))
+        .catch(err => console.error(`Failed to insert events ${JSON.stringify(events)}`, err));
+};
+
 
 module.exports = {
     insertTrackEvents
