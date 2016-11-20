@@ -87,13 +87,13 @@ describe('Api:Events:Output', () => {
     });
 
     it('should filter stats by date', async () => {
-        const today = moment().format();
-        const plusOneDays = moment().add(1, 'days').format();
-        const plusTwoDays = moment().add(2, 'days').format();
-        const plusOneYears = moment().add(1, 'years').format();
-        const minusOneDays = moment().subtract(1, 'days').format();
-        const minusTwoDays = moment().subtract(2, 'days').format();
-        const minusOneYears = moment().subtract(1, 'years').format();
+        const today = moment.utc().format();
+        const plusOneDays = moment.utc().add(1, 'days').format();
+        const plusTwoDays = moment.utc().add(2, 'days').format();
+        const plusOneYears = moment.utc().add(1, 'years').format();
+        const minusOneDays = moment.utc().subtract(1, 'days').format();
+        const minusTwoDays = moment.utc().subtract(2, 'days').format();
+        const minusOneYears = moment.utc().subtract(1, 'years').format();
 
         await db.insertTrackEvents(appId, getFakeEvents(10, ['One'], [today], appId));
         await db.insertTrackEvents(appId, getFakeEvents(5, ['One'], [plusOneDays], appId));
