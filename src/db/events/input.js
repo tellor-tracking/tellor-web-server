@@ -1,7 +1,7 @@
 const md5 = require('md5');
 const async = require('async');
 const moment = require('moment');
-const filtersCore =  require('../../core/filters');
+const filtersLib =  require('../../lib/filters');
 
 function addGUIDs(appId, events) {
     for (let event of events) {
@@ -44,7 +44,7 @@ function incrementStatsByEventsFilters(appId, events, db, dbObj) {
 
     dbObj.getFilters(appId, db)
         .then(filters => {
-            const filtersCombinations = filtersCore.getAllFiltersCombinations(filters);
+            const filtersCombinations = filtersLib.getAllFiltersCombinations(filters);
 
             filtersCombinations.forEach(combo => doFiltersIncremention(combo, events, db));
         })
@@ -57,7 +57,7 @@ function doFiltersIncremention(filters, events, db) {
 
     return new Promise((resolve, reject) => {
         async.series(events.map(event => done => {
-            if (!filtersCore.doesEventPassFilters(event, filters)) {
+            if (!filtersLib.doesEventPassFilters(event, filters)) {
                 return done();
             }
 

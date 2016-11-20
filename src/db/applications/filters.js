@@ -1,5 +1,5 @@
 const uuid = require('shortid');
-const filtersCore = require('../../core/filters');
+const filtersLib = require('../../lib/filters');
 const {BadDataError} = require('../../lib/apiErrorHandler');
 
 const validateFilterId = db => (appId, filterId) => {
@@ -13,7 +13,7 @@ const validateFilterId = db => (appId, filterId) => {
 };
 
 const addEventsFilter = db => (appId, {filterValue}) => {
-    if (!filtersCore.isFilterValueValid(filterValue)) {
+    if (!filtersLib.isFilterValueValid(filterValue)) {
         throw new BadDataError('Invalid filterValue');
     }
 

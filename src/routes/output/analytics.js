@@ -1,16 +1,13 @@
 const db = require('../../db');
-const Boom = require('boom');
+const {handler} = require('../../lib/apiErrorHandler');
 
 const getEventCount = {
     path: '/api/events/{id}/stats',
     method: 'GET',
-    handler(request, reply) {
-
+    handler: handler((request, reply) => (
         db.getEventStats(request.params.id, request.query)
             .then(docs=> reply(docs))
-            .catch(err => reply(Boom.badImplementation('Failed to retrieve event count', err)));
-
-    }
+    ))
 };
 
 
