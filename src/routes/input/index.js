@@ -45,7 +45,7 @@ const trackEvent = {
 
         const appKey = request.query.app_key;
 
-        db.isAppIdValid(appKey)
+        db.validateApplicationId(appKey)
             .then((isValid) => {
                 if (!isValid) return console.error('Invalid app key');
 

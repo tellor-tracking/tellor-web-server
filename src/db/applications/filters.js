@@ -1,15 +1,20 @@
 const uuid = require('shortid');
 const filtersCore = require('../../core/filters');
+const {BadDataError} = require('../../lib/apiErrorHandler');
 
-const isFilterIdValid = db => (appId, filterId) => {
+const validateFilterId = db => (appId, filterId) => {
     const collection = db().collection('applications');
     return collection.find({id: appId}, {eventsFilters: 1}).limit(1).next()
-        .then((result) => result.eventsFilters.find(f => f.id === filterId) !== undefined);
+        .then((result) => {
+            if (result.eventsFilters.find(f => f.id === filterId) === undefined) {
+                throw new BadDataError('Invalid filter id');
+            }
+        });
 };
 
 const addEventsFilter = db => (appId, {filterValue}) => {
     if (!filtersCore.isFilterValueValid(filterValue)) {
-        return Promise.reject('Invalid filterValue');
+        throw new BadDataError('Invalid filterValue');
     }
 
     const collection = db().collection('applications');
@@ -40,6 +45,6 @@ const getFilters = db => appId => {
 module.exports = {
     addEventsFilter,
     deleteEventsFilter,
-    isFilterIdValid,
+    validateFilterId,
     getFilters
 };

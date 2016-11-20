@@ -1,8 +1,15 @@
 const uuid = require('shortid');
+const {BadDataError} = require('../../lib/apiErrorHandler');
 
-const isAppIdValid = db => (id) => {
+const validateApplicationId = db => (id) => {
     const collection = db().collection('applications');
-    return collection.find({id: id}, {_id: 1}).limit(1).next().then((result) => result !== null);
+    return collection.find({id: id}, {_id: 1}).limit(1).next().then((result) => {
+        if (result === null) {
+            throw new BadDataError('Invalid app id');
+        }
+
+        return true;
+    });
 };
 
 const authenticateApplication = db => (id, password) => {
@@ -10,11 +17,11 @@ const authenticateApplication = db => (id, password) => {
     return collection.find({id: id}).limit(1).next()
         .then(doc => {
             if (!doc) {
-                throw Error('Invalid app id');
+                throw new BadDataError('Invalid app id');
             } else if (doc.password === password) {
                 return true;
             } else {
-                throw Error('Invalid app password');
+                throw new BadDataError('Invalid app password');
             } // TODO add hashing
         })
 
@@ -61,7 +68,7 @@ const removeApplication = db => function (id) {
 module.exports = {
     registerApplication,
     removeApplication,
-    isAppIdValid,
+    validateApplicationId,
     getApplication,
     getApplications,
     authenticateApplication,

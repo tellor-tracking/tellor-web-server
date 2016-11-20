@@ -62,16 +62,24 @@ describe('Api:Applications', () =>{
 
     it('should fail to remove application if incorrect id is provided', async () =>{
         await db.registerApplication('TestName', 'TestPassword');
-        const res =  await chai.request(serverUri).delete(`/api/applications/wrong/remove`).send({password: 'TestPassword'});
-        expect(res.body.id).to.equal('wrong');
-        expect(res.body.isRemoved).to.be.false;
+        try {
+            await chai.request(serverUri).delete(`/api/applications/wrong/remove`).send({password: 'TestPassword'});
+            expect(1).to.equal(2); // should not be called
+        } catch (e) {
+            expect(e.message).to.be.equal('Unprocessable Entity');
+            expect(e.response.body.message).to.be.equal('Invalid app id');
+        }
     });
 
     it('should fail to remove application if incorrect password is provided', async () =>{
         const {id: appId} = await db.registerApplication('TestName', 'TestPassword');
-        const res =  await chai.request(serverUri).delete(`/api/applications/${appId}/remove`).send({password: 'TestWrong'});
-        expect(res.body.id).to.equal(appId);
-        expect(res.body.isRemoved).to.be.false;
+        try {
+            await chai.request(serverUri).delete(`/api/applications/${appId}/remove`).send({password: 'TestWrong'});
+            expect(1).to.equal(2); // should not be called
+        } catch (e) {
+            expect(e.message).to.be.equal('Unprocessable Entity');
+            expect(e.response.body.message).to.be.equal('Invalid app password');
+        }
     });
 
     it('should return list of applications', async () =>{
@@ -144,8 +152,6 @@ describe('Api:Applications', () =>{
         const res1 = await chai.request(serverUri).delete(`/api/applications/${appId}/eventsFilters/${filterId1}`).send({password: 'TestPassword'});
         const res2 = await chai.request(serverUri).delete(`/api/applications/${appId}/eventsFilters/${filterId2}`).send({password: 'TestPassword'});
 
-        console.log(res1.body);
-
         expect(res1.body).to.have.property('isSuccessful').that.equals(true);
         expect(res2.body).to.have.property('isSuccessful').that.equals(true);
 
@@ -166,7 +172,7 @@ describe('Api:Applications', () =>{
         } catch (e) {
             expect(e).to.have.status(422);
             expect(e.message).to.be.equal('Unprocessable Entity');
-            expect(e.response.body.message).to.be.equal('Error: Invalid app id');
+            expect(e.response.body.message).to.be.equal('Invalid app id');
         }
 
         const apps = await db.getApplications();
