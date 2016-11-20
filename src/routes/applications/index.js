@@ -1,15 +1,13 @@
 const db = require('../../db');
 const Boom = require('boom');
 
-const getApplication = {
+const getSingleApplication = {
     path: '/api/applications/{appId}',
-        method: 'GET',
-        handler(request, reply) {
+    method: 'GET',
+    handler(request, reply) {
 
         db.getApplication(request.params.appId)
-            .then(docs => {
-                reply(docs);
-            })
+            .then(docs => reply(docs))
             .catch(err => reply(Boom.badImplementation('Failed to retrieve application', err)));
     }
 };
@@ -17,13 +15,11 @@ const getApplication = {
 
 const getApplications = {
     path: '/api/applications',
-        method: 'GET',
-        handler(request, reply) {
+    method: 'GET',
+    handler(request, reply) {
 
         db.getApplications()
-            .then(docs => {
-                reply(docs);
-            })
+            .then(docs => reply(docs))
             .catch(err => reply(Boom.badImplementation('Failed to retrieve applications', err)));
     }
 };
@@ -34,12 +30,12 @@ const registerApplication = {
     handler(request, reply) {
 
         if (!request.payload.name) {
-            return reply(Boom.badData('You must provide name'))
+            return reply(Boom.badData('You must provide name'));
         }
 
         db.registerApplication(request.payload.name, request.payload.password)
-            .then(docs=> reply(docs))
-            .catch(err => reply(Boom.badImplementation('Failed to register new application', err)))
+            .then(docs => reply(docs))
+            .catch(err => reply(Boom.badImplementation('Failed to register new application', err)));
     }
 };
 
@@ -51,8 +47,8 @@ const removeApplication = {
         const id = request.params.id;
         db.authenticateApplication(id, request.payload.password)
             .then(() => db.removeApplication(id))
-            .then(()=> reply({id, isRemoved: true}))
-            .catch((error)=> reply({id: id, isRemoved: false, error: `${error}`}));
+            .then(() => reply({id, isRemoved: true}))
+            .catch((error) => reply({id: id, isRemoved: false, error: `${error}`})); // TODO -> isSuccessful
     }
 };
 
@@ -60,6 +56,7 @@ const addEventsFilter = {
     path: '/api/applications/{id}/eventsFilters',
     method: 'POST',
     handler(request, reply) {
+
         if (!request.payload && !request.payload.eventFilter && !request.payload.eventFilter.filterValue) {
             return reply(Boom.badData('You must provide eventFilter.filterValue'))
         }
@@ -70,10 +67,11 @@ const addEventsFilter = {
                 if (!isValid) return reply(Boom.badData('Invalid app id'));
 
                 return db.addEventsFilter(id, request.payload.eventFilter)
-                    .then(({id, res})=> reply({isSuccessful: true, id, res}))
+                    .then(({id, res}) => reply({isSuccessful: true, id, res}))
+                    .catch(error => reply(Boom.badData(error)));
 
             })
-            .catch(error => reply(Boom.badData(error)));
+            .catch(error => reply(Boom.badImplementation(error)));
     }
 };
 
@@ -83,22 +81,19 @@ const removeEventsFilter = {
     handler(request, reply) {
 
         const {appId, id} = request.params;
-        // TODO add auth with password, this is important enough
-        db.isAppIdValid(appId)
-            .then((isValid) => {
-                if (!isValid) return reply(Boom.badData('Invalid app id'));
+
+        db.authenticateApplication(appId, request.payload.password)
+            .then(() => {
                 return db.isFilterIdValid(appId, id)
                     .then((isValid) => {
                         if (!isValid) return reply(Boom.badData('Invalid filter id'));
                         return db.deleteEventsFilter(appId, id)
-                            .then(res=> reply({isSuccessful: true}));
-
+                            .then(res => reply({isSuccessful: true}));
                     })
             })
-            .catch(error => {console.log(error);return reply(Boom.badData(error))});
+            .catch((error) => reply(Boom.badData(error)));
     }
 };
 
 
-
-module.exports = [registerApplication, removeApplication, getApplications, getApplication, addEventsFilter, removeEventsFilter];
+module.exports = [registerApplication, removeApplication, getApplications, getSingleApplication, addEventsFilter, removeEventsFilter];

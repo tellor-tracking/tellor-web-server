@@ -5,14 +5,16 @@ const isAppIdValid = db => (id) => {
     return collection.find({id: id}, {_id: 1}).limit(1).next().then((result) => result !== null);
 };
 
-const authenticateApplication = db => function (id, password) {
+const authenticateApplication = db => (id, password) => {
     const collection = db().collection('applications');
     return collection.find({id: id}).limit(1).next()
         .then(doc => {
-            if (doc.password === password) {
+            if (!doc) {
+                throw Error('Invalid app id');
+            } else if (doc.password === password) {
                 return true;
             } else {
-                throw Error('Invalid password');
+                throw Error('Invalid app password');
             } // TODO add hashing
         })
 

@@ -49,7 +49,7 @@ describe('Api:Applications', () =>{
             await db.authenticateApplication(res.body.id, 'TestPassword')
         } catch (e) {
             expect(e).to.be.an('error');
-            expect(e.message).to.be.equal('Invalid password');
+            expect(e.message).to.be.equal('Invalid app password');
         }
     });
 
@@ -75,8 +75,19 @@ describe('Api:Applications', () =>{
     });
 
     it('should return list of applications', async () =>{
+        await db.registerApplication('TestName', 'TestPassword');
+        const res =  await chai.request(serverUri).get(`/api/applications`);
         const apps = await db.getApplications();
-        expect(apps).to.be.an('array');
+
+        expect(res.body).to.be.an('array');
+        expect(JSON.stringify(res.body)).to.deep.equal(JSON.stringify(apps))
+    });
+
+    it('should return single application', async () =>{
+        const {id: appId} = await db.registerApplication('TestName', 'TestPassword');
+        const res =  await chai.request(serverUri).get(`/api/applications/${appId}`);
+        expect(res.body.id).to.equal(appId);
+        expect(res.body.name).to.equal('TestName');
     });
 
     // FILTERS
@@ -130,8 +141,10 @@ describe('Api:Applications', () =>{
         const {id: filterId1} = await db.addEventsFilter(appId, {filterValue: 'ip=123.345.33'});
         const {id: filterId2} = await db.addEventsFilter(appId, {filterValue: 'appVersion=2b'});
 
-        const res1 = await chai.request(serverUri).delete(`/api/applications/${appId}/eventsFilters/${filterId1}`);
-        const res2= await chai.request(serverUri).delete(`/api/applications/${appId}/eventsFilters/${filterId2}`);
+        const res1 = await chai.request(serverUri).delete(`/api/applications/${appId}/eventsFilters/${filterId1}`).send({password: 'TestPassword'});
+        const res2 = await chai.request(serverUri).delete(`/api/applications/${appId}/eventsFilters/${filterId2}`).send({password: 'TestPassword'});
+
+        console.log(res1.body);
 
         expect(res1.body).to.have.property('isSuccessful').that.equals(true);
         expect(res2.body).to.have.property('isSuccessful').that.equals(true);
@@ -148,12 +161,12 @@ describe('Api:Applications', () =>{
         const {id: filterId1} = await db.addEventsFilter(appId, {filterValue: 'ip=123.345.33'});
 
         try {
-            await chai.request(serverUri).delete(`/api/applications/wrongAppId/eventsFilters/${filterId1}`);
+            await chai.request(serverUri).delete(`/api/applications/wrongAppId/eventsFilters/${filterId1}`).send({password: 'TestPassword'});
             expect(1).to.equal(2); // should not be called
         } catch (e) {
             expect(e).to.have.status(422);
             expect(e.message).to.be.equal('Unprocessable Entity');
-            expect(e.response.body.message).to.be.equal('Invalid app id');
+            expect(e.response.body.message).to.be.equal('Error: Invalid app id');
         }
 
         const apps = await db.getApplications();
@@ -167,7 +180,7 @@ describe('Api:Applications', () =>{
         const {id: filterId1} = await db.addEventsFilter(appId, {filterValue: 'ip=123.345.33'});
 
         try {
-            await chai.request(serverUri).delete(`/api/applications/${appId}/eventsFilters/wrongFilterId`);
+            await chai.request(serverUri).delete(`/api/applications/${appId}/eventsFilters/wrongFilterId`).send({password: 'TestPassword'});
             expect(1).to.equal(2); // should not be called
         } catch (e) {
             expect(e).to.have.status(422);
