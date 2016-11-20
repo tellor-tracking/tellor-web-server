@@ -1,6 +1,8 @@
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const db = require('../../../src/db/index');
+const dbUtils = require('../../../src/db/utils');
+const {getFakeEvents} = require('../../../dev/lib');
 const expect = chai.expect;
 
 chai.use(chaiHttp);
@@ -55,9 +57,29 @@ describe('Api:Applications', () =>{
 
     it('should remove application if correct id and password is provided', async () =>{
         const {id: appId} = await db.registerApplication('TestName', 'TestPassword');
+        await db.insertTrackEvents(appId, getFakeEvents(30, 2, 5, appId));
         const res =  await chai.request(serverUri).delete(`/api/applications/${appId}/remove`).send({password: 'TestPassword'});
         expect(res.body.id).to.equal(appId);
         expect(res.body.isRemoved).to.be.true;
+
+        const appCol = db.getDb().collection('applications');
+        const eventsFieldsCol = db.getDb().collection('eventsFields');
+
+        const [eventsCols, eventsStatsCols] = await Promise.all([
+            dbUtils.getRelevantCollectionsByName(db.getDb(), 'events'),
+            dbUtils.getRelevantCollectionsByName(db.getDb(), 'eventsStats')
+        ]);
+
+        const r1 = await appCol.find({appId}).toArray();
+        const r2 = await eventsFieldsCol.find({appId}).toArray();
+        const r3 = await Promise.all(eventsCols.map(c => c.find({appId}).toArray()));
+        const r4 = await Promise.all(eventsStatsCols.map(c => c.find({appId}).toArray()));
+
+        expect(r1).to.have.length(0);
+        expect(r2).to.have.length(0);
+        r3.forEach(a => expect(a).to.have.length(0));
+        r4.forEach(a => expect(a).to.have.length(0));
+
     });
 
     it('should fail to remove application if incorrect id is provided', async () =>{

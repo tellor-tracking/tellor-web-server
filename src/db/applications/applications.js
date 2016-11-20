@@ -58,7 +58,7 @@ const removeApplication = db => function (id) {
         .then(([eventsCols, eventsStatsCols]) => Promise.all([
             appCol.deleteOne({id}),
             Promise.all(eventsCols.map(col => col.deleteMany({appId: id}))),
-            Promise.all(eventsStatsCols.map(col => col.deleteOne({appId: id}))),
+            Promise.all(eventsStatsCols.map(col => col.deleteMany({appId: id}))),
             eventsFieldsCol.deleteMany({appId: id})
         ]));
 
