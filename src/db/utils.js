@@ -22,22 +22,25 @@ function getRangeOfDates(startDate, endDate, step = 'months') {
  * @param step
  * @return {Promise.<TResult>}
  */
-function getRelevantCollections(db,
-                                collectionName,
-                                startDate = moment.utc().subtract(1, 'months').format('YYYY-MM-DD'),
-                                endDate = moment.utc().format('YYYY-MM-DD'),
-                                step = 'months') {
+function getRelevantCollectionsByDate(db,
+                                      collectionName,
+                                      startDate = moment.utc().subtract(1, 'months').format('YYYY-MM-DD'),
+                                      endDate = moment.utc().format('YYYY-MM-DD'),
+                                      step = 'months') {
 
     const namesToMatch = getRangeOfDates(startDate, endDate, step).map(d => `${collectionName}-${d}`);
 
     return db.collections()
-        .then(collections => {
-            return collections.filter(c => namesToMatch.find(n => n === c.s.name))
-        });
+        .then(collections => collections.filter(c => namesToMatch.find(n => n === c.s.name)));
+}
 
+function getRelevantCollectionsByName(db, collectionName) {
+    return db.collections()
+        .then(collections => collections.filter(c => c.s.name.split('-')[0] === collectionName));
 }
 
 
 module.exports = {
-    getRelevantCollections
+    getRelevantCollectionsByDate,
+    getRelevantCollectionsByName
 };

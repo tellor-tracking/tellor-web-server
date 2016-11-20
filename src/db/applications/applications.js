@@ -1,5 +1,7 @@
 const uuid = require('shortid');
 const {BadDataError} = require('../../lib/apiErrorHandler');
+const utils = require('../utils');
+const bcrypt = require('bcrypt');
 
 const validateApplicationId = db => (id) => {
     const collection = db().collection('applications');
@@ -18,11 +20,11 @@ const authenticateApplication = db => (id, password) => {
         .then(doc => {
             if (!doc) {
                 throw new BadDataError('Invalid app id');
-            } else if (doc.password === password) {
+            } else if (bcrypt.compareSync(password, doc.password)) {
                 return true;
             } else {
                 throw new BadDataError('Invalid app password');
-            } // TODO add hashing
+            }
         })
 
 
@@ -38,25 +40,28 @@ const getApplications = db => () => {
     return collection.find({}, {password: 0}).toArray();
 };
 
-const registerApplication = db => (name, password, cb) => {
+const registerApplication = db => (name, password) => {
     const collection = db().collection('applications');
     const id = uuid.generate();
-    return collection.insertOne({name: name, id: id, password: password || name, eventsFilters: []}).then(() => ({id}));
+    return collection.insertOne({name: name, id: id, password: bcrypt.hashSync(password || name, 8), eventsFilters: []}).then(() => ({id}));
 };
 
 const removeApplication = db => function (id) {
     // remove app and all of its events
     const appCol = db().collection('applications');
-    const eventsCol = db().collection('events'); // TODO get all collections by date
-    const eventsStatsCol = db().collection('eventsStats'); // TODO get all collections by date
     const eventsFieldsCol = db().collection('eventsFields');
 
     return Promise.all([
-        appCol.deleteOne({id}),
-        eventsCol.deleteMany({appId: id}),
-        eventsStatsCol.deleteOne({appId: id}),
-        eventsFieldsCol.deleteMany({appId: id})
-    ]);
+        utils.getRelevantCollectionsByName(db(), 'events'),
+        utils.getRelevantCollectionsByName(db(), 'eventsStats')
+    ])
+        .then(([eventsCols, eventsStatsCols]) => Promise.all([
+            appCol.deleteOne({id}),
+            Promise.all(eventsCols.map(col => col.deleteMany({appId: id}))),
+            Promise.all(eventsStatsCols.map(col => col.deleteOne({appId: id}))),
+            eventsFieldsCol.deleteMany({appId: id})
+        ]));
+
 
     // its possible to delete when 0 events were pushed, so it would delete count 0
     /*    if (result.some((r)=> r.deletedCount === 0)) {

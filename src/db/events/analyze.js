@@ -10,7 +10,7 @@ function getEventStats(db) {
 
         const filtersQuery = filters ? filters.replace(',', '-') : 'none';
 
-        return utils.getRelevantCollections(db(), 'eventsStats', startDate, endDate)
+        return utils.getRelevantCollectionsByDate(db(), 'eventsStats', startDate, endDate)
             .then(collections => Promise.all(collections.map(c => c.findOne({id: `${eventId}:filters:${filtersQuery}`}))))
             .then(objects => objects.length > 1 ? deepmerge.all(objects) : objects[0])
             .then((doc => {
