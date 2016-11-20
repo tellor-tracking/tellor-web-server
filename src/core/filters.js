@@ -1,6 +1,5 @@
 
 function getAllFiltersCombinations(filters) {
-
     const combinations = [];
 
     const filterByType = filters
@@ -36,6 +35,7 @@ function getAllFiltersCombinations(filters) {
     return combinations;
 }
 
+
 function doesEventPassFilters(event, filters) {
     const isNegative = filterValue => filterValue.indexOf('=!') > -1;
     const getEqualityValues = (filterValue, isNegative) => filterValue.split(isNegative ? '=!' : '=')[1].split(','); // these values need to be escaped b4 this
@@ -52,7 +52,21 @@ function doesEventPassFilters(event, filters) {
 }
 
 
+function isFilterValueValid(value) {
+    const [key, val, ...rest] = value.split('=');
+    if (key === undefined || val === undefined || rest.length !== 0) {
+        return false;
+    }
+
+    if (['ip', 'appVersion'].indexOf(key) === -1) {
+        return false;
+    }
+
+    return true;
+}
+
 module.exports = {
     getAllFiltersCombinations,
-    doesEventPassFilters
+    doesEventPassFilters,
+    isFilterValueValid
 };
