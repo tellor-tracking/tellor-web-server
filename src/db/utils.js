@@ -13,7 +13,6 @@ function getRangeOfDates(startDate, endDate, step = 'months') {
     return dates;
 }
 
-
 /**
  * Find collections in given date range which have a date postfix to their name
  * @param db

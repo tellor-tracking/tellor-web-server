@@ -78,6 +78,14 @@ describe('Api:Events:Output', () => {
         event.segmentation.forEach(s => expect(eventStats.body.segmentation).to.have.property(s));
     });
 
+    it('should returns stats by segmentation with stats interval: day', () => {
+        // TODO
+    });
+
+    it('should returns stats by segmentation with stats interval: month', () => {
+        // TODO
+    });
+
     it('should filter stats by date', async () => {
         const today = moment().format();
         const plusOneDays = moment().add(1, 'days').format();

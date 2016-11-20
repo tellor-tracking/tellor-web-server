@@ -1,6 +1,6 @@
 const moment = require('moment');
 const db = require('../../db');
-const {getFormattedTrackObjects, isAllFieldsPresent} = require('../../lib/events');
+const {getFormattedTrackObjects, isAllFieldsPresent} = require('../../lib/eventsInput');
 
 
 const getAnalyticsData = request => ({ip: request.raw.req.headers['x-real-ip']}); // since we are under reverse nginx proxy we save real ip in header
