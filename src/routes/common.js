@@ -2,9 +2,19 @@ const serveReactApp = {
     method: 'GET',
     path: '/{paths*}',
     config: {auth: false},
-    handler: function(req, res) {
-        res.file('react/index.html');
+    handler(request, reply) {
+        reply.file('react/index.html');
     }
 };
 
-module.exports = [serveReactApp];
+
+const healthcheck = {
+    method: 'GET',
+    path: '/healthcheck',
+    config: {auth: false},
+    handler(request, reply) {
+        reply('Server is up and running');
+    }
+};
+
+module.exports = [serveReactApp, healthcheck];
