@@ -8,7 +8,9 @@ const expect = chai.expect;
 chai.use(chaiHttp);
 
 
-describe('Api:Applications', () =>{
+describe('Api:Applications', function() {
+
+    this.slow(500);
 
     let serverUri;
 

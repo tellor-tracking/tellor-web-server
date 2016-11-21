@@ -16,7 +16,9 @@ const getFilter = (filters, filter, value) => filters.reduce((res, val) => {
 }, null);
 
 
-describe('Api:Events:Output', () => {
+describe('Api:Events:Output', function() {
+
+    this.slow(500);
 
     let serverUri;
     let dbConnection;
