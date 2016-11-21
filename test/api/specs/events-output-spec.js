@@ -69,7 +69,7 @@ describe('Api:Events:Output', function() {
         expect(event.name).to.equal('NameOne');
         expect(eventStats.body).to.have.property('name').that.equals(event.name);
         expect(eventStats.body).to.have.property('appId').that.equals(appId);
-        expect(eventStats.body).to.have.property('id').that.equals(`${event._id}:filters:none`);
+        expect(eventStats.body).to.have.property('_id').that.equals(`${event._id}:filters:none`);
 
         expect(eventStats.body).to.have.property('count');
         expect(eventStats.body).to.have.property('totalCount').that.equals(10);

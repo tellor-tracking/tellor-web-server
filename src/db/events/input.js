@@ -6,7 +6,7 @@ const log = require('../../../logging');
 
 function addGUIDs(appId, events) {
     for (let event of events) {
-        event.id = md5(appId + event.name);
+        event.id = md5(appId + event.name); // !!@@ this is not unique id, it's id for for name !!
     }
 }
 
@@ -29,7 +29,7 @@ function incrementStats(events, db) {
 
     return new Promise((resolve, reject) => {
         async.series(events.map(event => done => collection.updateOne(
-            {id: `${event.id}:filters:none`},
+            {_id: `${event.id}:filters:none`},
             {
                 $inc: constructIncrementObject(event.segmentation, event.meta.timestamp),
                 $setOnInsert: {appId: event.appId, name: event.name}
@@ -62,7 +62,7 @@ function doFiltersIncremention(filters, events, db) {
             }
 
             collection.updateOne(
-                {id: `${event.id}:filters:${filters.map(f => f.id).join('-')}`},
+                {_id: `${event.id}:filters:${filters.map(f => f.id).join('-')}`},
                 {
                     $inc: constructIncrementObject(event.segmentation, event.meta.timestamp),
                     $setOnInsert: {appId: event.appId, name: event.name}
