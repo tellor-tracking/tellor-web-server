@@ -53,14 +53,14 @@ function getFakeEvents(numberOfEvents, numberOfDifferentEvents, days, appId, ips
     return c.n(makeEvent, numberOfEvents);
 }
 
-function addFilters(db, appId, ipFilters = [], appFilters = []) {
+function addFilters(db, appId, ipFilters = [], appFilters = [], ipOperator = '=', appVersionOperator = '=') {
     return new Promise((res, rej) => {
         const c = [
             ...ipFilters.map(f => (done) => {
-                db.addEventsFilter(appId, {filterValue: `ip=${f}`}).then(() => done(null));
+                db.addEventsFilter(appId, {filterValue: `ip${ipOperator}${f}`}).then(() => done(null));
             }),
             ...appFilters.map(f => (done) => {
-                db.addEventsFilter(appId, {filterValue: `appVersion=${f}`}).then(() => done(null));
+                db.addEventsFilter(appId, {filterValue: `appVersion${appVersionOperator}${f}`}).then(() => done(null));
             })
         ];
 

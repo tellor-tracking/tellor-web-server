@@ -1,7 +1,7 @@
 const serveReactApp = {
     method: 'GET',
     path: '/{paths*}',
-    config: {auth: {mode: 'optional'}},
+    config: {auth: process.env.NODE_ENV === 'test' ? false : {mode: 'optional'}},
     handler(request, reply) {
         if (request.path !== '/login' && !request.auth.isAuthenticated) {
             return reply.redirect('/login');

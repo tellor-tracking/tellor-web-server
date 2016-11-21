@@ -156,6 +156,37 @@ describe('Api:Events:Output', function() {
         expect(stats3.totalCount).to.equal(5);
     });
 
+
+    it('should filter stats by ip filter when multiple ips are specified in one filter', async () => {
+        let ips = [['1111.222.33,4567.2222.333'], ['2222.444.555']];
+
+        await addFilters(db, appId, ips);
+
+        await db.insertTrackEvents(appId, getFakeEvents(10, ['One'], 1, appId, ['1111.222.33']));
+        await db.insertTrackEvents(appId, getFakeEvents(7, ['One'], 1, appId, ['4567.2222.333']));
+        await db.insertTrackEvents(appId, getFakeEvents(5, ['One'], 1, appId, ips[1]));
+
+        const {body: {eventsFilters}} = await chai.request(serverUri).get(`/api/applications/${appId}`);
+
+        const filterId0 = getFilter(eventsFilters, 'ip', ips[0][0]);
+        const filterId1 = getFilter(eventsFilters, 'ip', ips[1][0]);
+
+        const res = await chai.request(serverUri).get(`/api/applications/${appId}/events`);
+        const event = res.body[0];
+
+        // make sure all events were registered
+        const {body: stats1} = await chai.request(serverUri).get(`/api/events/${event._id}/stats`);
+        expect(stats1.totalCount).to.equal(22);
+
+        // make sure filter 0 works: both event inserts with different ips got registered at the same filter
+        const {body: stats2} = await chai.request(serverUri).get(`/api/events/${event._id}/stats?filters=${filterId0}`);
+        expect(stats2.totalCount).to.equal(17);
+
+        // make sure filter 1 works
+        const {body: stats3} = await chai.request(serverUri).get(`/api/events/${event._id}/stats?filters=${filterId1}`);
+        expect(stats3.totalCount).to.equal(5);
+    });
+
     it('should filter stats by appVersion filter', async () => {
         let appVersions = [['1'], ['2a']];
 
@@ -179,6 +210,36 @@ describe('Api:Events:Output', function() {
         // make sure filter 0 works
         const {body: stats2} = await chai.request(serverUri).get(`/api/events/${event._id}/stats?filters=${filterId0}`);
         expect(stats2.totalCount).to.equal(10);
+
+        // make sure filter 1 works
+        const {body: stats3} = await chai.request(serverUri).get(`/api/events/${event._id}/stats?filters=${filterId1}`);
+        expect(stats3.totalCount).to.equal(5);
+    });
+
+    it('should filter stats by appVersion filter when multiple versions are specified in one filter', async () => {
+        let appVersions = [['1,2,5c'], ['2a']];
+
+        await addFilters(db, appId, [], appVersions);
+
+        await db.insertTrackEvents(appId, getFakeEvents(10, ['One'], 1, appId, [1], ['1', '2']));
+        await db.insertTrackEvents(appId, getFakeEvents(7, ['One'], 1, appId, [1], ['5c']));
+        await db.insertTrackEvents(appId, getFakeEvents(5, ['One'], 1, appId, [1], appVersions[1]));
+
+        const {body: {eventsFilters}} = await chai.request(serverUri).get(`/api/applications/${appId}`);
+
+        const filterId0 = getFilter(eventsFilters, 'appVersion', appVersions[0][0]);
+        const filterId1 = getFilter(eventsFilters, 'appVersion', appVersions[1][0]);
+
+        const res = await chai.request(serverUri).get(`/api/applications/${appId}/events`);
+        const event = res.body[0];
+
+        // make sure all events were registered
+        const {body: stats1} = await chai.request(serverUri).get(`/api/events/${event._id}/stats`);
+        expect(stats1.totalCount).to.equal(22);
+
+        // make sure filter 0 works: both event inserts with different ips got registered at the same filter
+        const {body: stats2} = await chai.request(serverUri).get(`/api/events/${event._id}/stats?filters=${filterId0}`);
+        expect(stats2.totalCount).to.equal(17);
 
         // make sure filter 1 works
         const {body: stats3} = await chai.request(serverUri).get(`/api/events/${event._id}/stats?filters=${filterId1}`);
@@ -222,6 +283,8 @@ describe('Api:Events:Output', function() {
         const {body: stats4} = await chai.request(serverUri).get(`/api/events/${event._id}/stats?filters=${ipFilterId1},${appVersionFilterId1}`);
         expect(stats4.totalCount).to.equal(0);
     });
+
+    // TODO add test for negative filters
 
     it('filter should be ordered by: ipFilter, appFilter', async () => {
         let ips = [['1111.222.33'], ['2222.444.555']];

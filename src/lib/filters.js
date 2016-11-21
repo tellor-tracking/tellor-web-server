@@ -44,7 +44,7 @@ function doesEventPassFilters(event, filters) {
         if (isNegative(filterValue)) {
             return getEqualityValues(filterValue, true).every(val => event.meta[type] !== val);
         } else {
-            return getEqualityValues(filterValue, false).every(val => event.meta[type] === val);
+            return getEqualityValues(filterValue, false).some(val => event.meta[type] === val);
         }
     }
 

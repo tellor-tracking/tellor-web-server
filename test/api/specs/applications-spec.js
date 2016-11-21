@@ -130,15 +130,22 @@ describe('Api:Applications', function() {
         const res = await chai.request(serverUri).post(`/api/applications/${appId}/eventsFilters`)
             .send({eventFilter: {filterValue: 'ip=111.222.333'}});
 
+        const res2 = await chai.request(serverUri).post(`/api/applications/${appId}/eventsFilters`)
+            .send({eventFilter: {filterValue: 'appVersion=1a,2b,3c'}});
+
         expect(res.body).to.have.property('id');
         expect(res.body).to.have.property('isSuccessful').that.equals(true);
+
+        expect(res2.body).to.have.property('id');
+        expect(res2.body).to.have.property('isSuccessful').that.equals(true);
 
 
         const apps = await db.getApplications();
         const app = apps.find(a => a._id === appId);
 
-        expect(app.eventsFilters).to.have.length(1);
+        expect(app.eventsFilters).to.have.length(2);
         expect(app.eventsFilters[0]).to.have.property('filterValue').that.equals('ip=111.222.333');
+        expect(app.eventsFilters[1]).to.have.property('filterValue').that.equals('appVersion=1a,2b,3c');
     });
 
     it('should not add filter if wrong app id is provided', async () =>{
