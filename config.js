@@ -14,5 +14,10 @@ module.exports = rc(name, { // default settings which can be overwritten with te
     "dbName": "tellor",
     "authSecret": crypto.randomBytes(256).toString('base64'),
     "defaultUser": "admin",
-    "defaultUserPassword": "admin"
+    "defaultUserPassword": "admin",
+    "logs": {
+        "logsFile": '/var/log/tellor/tellor.log',
+        "maxLogSize": 52428800, // 50mb
+        "maxNumberOfLogsFiles": 12
+    }
 });

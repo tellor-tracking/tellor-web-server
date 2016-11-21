@@ -2,6 +2,7 @@ const md5 = require('md5');
 const async = require('async');
 const moment = require('moment');
 const filtersLib =  require('../../lib/filters');
+const log = require('../../../logging');
 
 function addGUIDs(appId, events) {
     for (let event of events) {
@@ -107,8 +108,8 @@ const insertTrackEvents = (db, getDbObj) => (appId, events) => {
             incrementStats(events, d),
             incrementStatsByEventsFilters(appId, events, d, getDbObj())
         ]))
-        .then(() => console.log('Successfully inserted track events'))
-        .catch(err => console.error(`Failed to insert events ${JSON.stringify(events)}`, err));
+        .then(() => log.info('Successfully inserted track events'))
+        .catch(err => log.error(`Failed to insert events ${JSON.stringify(events)}`, err));
 };
 
 

@@ -29,7 +29,8 @@
     "pm2": "^2.1.4",
     "query-string": "^4.2.3",
     "rc": "^1.1.6",
-    "shortid": "^2.2.6"
+    "shortid": "^2.2.6",
+    "winston": "^2.3.0"
   },
   "devDependencies": {
     "babel-polyfill": "^6.16.0",
