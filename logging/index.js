@@ -9,7 +9,7 @@ const log = new (winston.Logger)({
         new (winston.transports.Console)({level: 'debug', colorize: true}),
         new (winston.transports.File)({
             level: 'info',
-            filename: config.logs.logsFile,
+            filename: config.logs.logsFile, // TODO fix permissions on deploy scripts
             maxsize: config.logs.maxLogSize,
             maxFiles: config.logs.maxNumberOfLogsFiles,
             tailable: true,
