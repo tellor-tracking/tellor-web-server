@@ -31,7 +31,7 @@ describe('Api:Events:Output', function() {
 
     beforeEach(async () => {
         const r = await db.registerApplication('TestName', 'TestPassword');
-        appId = r.id;
+        appId = r._id;
     });
 
     it('should return list of events with their segmentations', async () => {

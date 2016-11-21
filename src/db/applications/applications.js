@@ -3,9 +3,9 @@ const {BadDataError} = require('../../lib/apiErrorHandler');
 const utils = require('../utils');
 const bcrypt = require('bcrypt');
 
-const validateApplicationId = db => (id) => {
+const validateApplicationId = db => _id => {
     const collection = db().collection('applications');
-    return collection.find({id: id}, {_id: 1}).limit(1).next().then((result) => {
+    return collection.find({_id}, {_id: 1}).limit(1).next().then((result) => {
         if (result === null) {
             throw new BadDataError('Invalid app id');
         }
@@ -14,9 +14,9 @@ const validateApplicationId = db => (id) => {
     });
 };
 
-const authenticateApplication = db => (id, password) => {
+const authenticateApplication = db => (_id, password) => {
     const collection = db().collection('applications');
-    return collection.find({id: id}).limit(1).next()
+    return collection.find({_id}).limit(1).next()
         .then(doc => {
             if (!doc) {
                 throw new BadDataError('Invalid app id');
@@ -26,13 +26,11 @@ const authenticateApplication = db => (id, password) => {
                 throw new BadDataError('Invalid app password');
             }
         })
-
-
 };
 
-const getApplication = db => (id) => {
+const getApplication = db => _id => {
     const collection = db().collection('applications');
-    return collection.find({id}, {password: 0}).limit(1).next();
+    return collection.find({_id}, {password: 0}).limit(1).next();
 };
 
 const getApplications = db => () => {
@@ -42,11 +40,11 @@ const getApplications = db => () => {
 
 const registerApplication = db => (name, password) => {
     const collection = db().collection('applications');
-    const id = uuid.generate();
-    return collection.insertOne({name: name, id: id, password: bcrypt.hashSync(password || name, 8), eventsFilters: []}).then(() => ({id}));
+    const _id = uuid.generate();
+    return collection.insertOne({name: name, _id, password: bcrypt.hashSync(password || name, 8), eventsFilters: []}).then(() => ({_id}));
 };
 
-const removeApplication = db => function (id) {
+const removeApplication = db => _id =>{
     // remove app and all of its events
     const appCol = db().collection('applications');
     const eventsFieldsCol = db().collection('eventsFields');
@@ -56,10 +54,10 @@ const removeApplication = db => function (id) {
         utils.getRelevantCollectionsByName(db(), 'eventsStats')
     ])
         .then(([eventsCols, eventsStatsCols]) => Promise.all([
-            appCol.deleteOne({id}),
-            Promise.all(eventsCols.map(col => col.deleteMany({appId: id}))),
-            Promise.all(eventsStatsCols.map(col => col.deleteMany({appId: id}))),
-            eventsFieldsCol.deleteMany({appId: id})
+            appCol.deleteOne({_id}),
+            Promise.all(eventsCols.map(col => col.deleteMany({appId: _id}))),
+            Promise.all(eventsStatsCols.map(col => col.deleteMany({appId: _id}))),
+            eventsFieldsCol.deleteMany({appId: _id})
         ]));
 
 

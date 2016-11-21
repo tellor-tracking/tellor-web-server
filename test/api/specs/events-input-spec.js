@@ -20,7 +20,7 @@ describe('Api:Events:Input', function() {
 
     beforeEach(async () => {
         const r = await db.registerApplication('TestName', 'TestPassword');
-        appId = r.id;
+        appId = r._id;
     });
 
     it('should accept N amount of events in one call', async () =>{

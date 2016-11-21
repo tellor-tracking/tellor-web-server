@@ -21,13 +21,13 @@ describe('Api:Applications', function() {
     it('should create application', async () =>{
         const res =  await chai.request(serverUri).post('/api/applications').send({name: 'TestName', password: 'TestPassword'});
         expect(res).to.have.status(200);
-        expect(res.body).to.have.property('id');
+        expect(res.body).to.have.property('_id');
 
         const apps = await db.getApplications();
-        const app = apps.find(a => a.id === res.body.id);
+        const app = apps.find(a => a._id === res.body._id);
         expect(app.name).to.equal(('TestName'));
 
-        const isAuthValid = await db.authenticateApplication(res.body.id, 'TestPassword');
+        const isAuthValid = await db.authenticateApplication(res.body._id, 'TestPassword');
         expect(isAuthValid).to.be.true;
     });
 
@@ -43,14 +43,14 @@ describe('Api:Applications', function() {
     it('should create application if no password is provided, using name for password', async () =>{
         const res =  await chai.request(serverUri).post('/api/applications').send({name: 'TestName'});
         expect(res).to.have.status(200);
-        expect(res.body).to.have.property('id');
+        expect(res.body).to.have.property('_id');
 
         const apps = await db.getApplications();
-        const app = apps.find(a => a.id === res.body.id);
+        const app = apps.find(a => a._id === res.body._id);
         expect(app.name).to.equal(('TestName'));
 
         try {
-            await db.authenticateApplication(res.body.id, 'TestPassword')
+            await db.authenticateApplication(res.body._id, 'TestPassword')
         } catch (e) {
             expect(e).to.be.an('error');
             expect(e.message).to.be.equal('Invalid app password');
@@ -58,10 +58,11 @@ describe('Api:Applications', function() {
     });
 
     it('should remove application if correct id and password is provided', async () =>{
-        const {id: appId} = await db.registerApplication('TestName', 'TestPassword');
+        const {_id: appId} = await db.registerApplication('TestName', 'TestPassword');
         await db.insertTrackEvents(appId, getFakeEvents(30, 2, 5, appId));
         const res =  await chai.request(serverUri).delete(`/api/applications/${appId}/remove`).send({password: 'TestPassword'});
-        expect(res.body.id).to.equal(appId);
+
+        expect(res.body._id).to.equal(appId);
         expect(res.body.isRemoved).to.be.true;
 
         const appCol = db.getDb().collection('applications');
@@ -96,7 +97,7 @@ describe('Api:Applications', function() {
     });
 
     it('should fail to remove application if incorrect password is provided', async () =>{
-        const {id: appId} = await db.registerApplication('TestName', 'TestPassword');
+        const {_id: appId} = await db.registerApplication('TestName', 'TestPassword');
         try {
             await chai.request(serverUri).delete(`/api/applications/${appId}/remove`).send({password: 'TestWrong'});
             expect(1).to.equal(2); // should not be called
@@ -116,16 +117,16 @@ describe('Api:Applications', function() {
     });
 
     it('should return single application', async () =>{
-        const {id: appId} = await db.registerApplication('TestName', 'TestPassword');
+        const {_id: appId} = await db.registerApplication('TestName', 'TestPassword');
         const res =  await chai.request(serverUri).get(`/api/applications/${appId}`);
-        expect(res.body.id).to.equal(appId);
+        expect(res.body._id).to.equal(appId);
         expect(res.body.name).to.equal('TestName');
     });
 
     // FILTERS
 
     it('should add filter to applications filter list if correct appId and filterValue is provided', async () =>{
-        const {id: appId} = await db.registerApplication('TestName', 'TestPassword');
+        const {_id: appId} = await db.registerApplication('TestName', 'TestPassword');
         const res = await chai.request(serverUri).post(`/api/applications/${appId}/eventsFilters`)
             .send({eventFilter: {filterValue: 'ip=111.222.333'}});
 
@@ -134,16 +135,14 @@ describe('Api:Applications', function() {
 
 
         const apps = await db.getApplications();
-        const app = apps.find(a => a.id === appId);
+        const app = apps.find(a => a._id === appId);
 
         expect(app.eventsFilters).to.have.length(1);
         expect(app.eventsFilters[0]).to.have.property('filterValue').that.equals('ip=111.222.333');
     });
 
     it('should not add filter if wrong app id is provided', async () =>{
-        const {id: appId} = await db.registerApplication('TestName', 'TestPassword');
         try {
-
             await chai.request(serverUri).post(`/api/applications/wrongAppId/eventsFilters`)
                 .send({eventFilter: {filterValue: 'ip=111.222.333'}});
         } catch (e) {
@@ -155,7 +154,7 @@ describe('Api:Applications', function() {
     });
 
     it('should not add filter if invalid filter is provided', async () =>{
-        const {id: appId} = await db.registerApplication('TestName', 'TestPassword');
+        const {_id: appId} = await db.registerApplication('TestName', 'TestPassword');
         try {
 
             await chai.request(serverUri).post(`/api/applications/${appId}/eventsFilters`)
@@ -169,7 +168,7 @@ describe('Api:Applications', function() {
     });
 
     it('should delete filter if correct appId and filterId is provided', async () =>{
-        const {id: appId} = await db.registerApplication('TestName', 'TestPassword');
+        const {_id: appId} = await db.registerApplication('TestName', 'TestPassword');
         const {id: filterId1} = await db.addEventsFilter(appId, {filterValue: 'ip=123.345.33'});
         const {id: filterId2} = await db.addEventsFilter(appId, {filterValue: 'appVersion=2b'});
 
@@ -181,13 +180,13 @@ describe('Api:Applications', function() {
 
 
         const apps = await db.getApplications();
-        const app = apps.find(a => a.id === appId);
+        const app = apps.find(a => a._id === appId);
 
         expect(app.eventsFilters).to.have.length(0);
     });
 
     it('should fail to delete filter if incorrect appId is provided', async () =>{
-        const {id: appId} = await db.registerApplication('TestName', 'TestPassword');
+        const {_id: appId} = await db.registerApplication('TestName', 'TestPassword');
         const {id: filterId1} = await db.addEventsFilter(appId, {filterValue: 'ip=123.345.33'});
 
         try {
@@ -200,13 +199,13 @@ describe('Api:Applications', function() {
         }
 
         const apps = await db.getApplications();
-        const app = apps.find(a => a.id === appId);
+        const app = apps.find(a => a._id === appId);
 
         expect(app.eventsFilters).to.have.length(1);
     });
 
     it('should fail to delete filter if incorrect filterId is provided', async () =>{
-        const {id: appId} = await db.registerApplication('TestName', 'TestPassword');
+        const {_id: appId} = await db.registerApplication('TestName', 'TestPassword');
         const {id: filterId1} = await db.addEventsFilter(appId, {filterValue: 'ip=123.345.33'});
 
         try {
@@ -219,7 +218,7 @@ describe('Api:Applications', function() {
         }
 
         const apps = await db.getApplications();
-        const app = apps.find(a => a.id === appId);
+        const app = apps.find(a => a._id === appId);
 
         expect(app.eventsFilters).to.have.length(1);
         expect(app.eventsFilters[0]).to.have.property('id').that.equals(filterId1);
