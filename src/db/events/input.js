@@ -49,7 +49,6 @@ function incrementStatsByEventsFilters(appId, events, db, dbObj) {
 
             filtersCombinations.forEach(combo => doFiltersIncremention(combo, events, db));
         })
-        .catch(err => console.error('Failed to get filters', err));
 }
 
 

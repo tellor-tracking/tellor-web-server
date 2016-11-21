@@ -1,5 +1,6 @@
 const moment = require('moment');
 const db = require('../../db');
+const log = require('../../../logging');
 const {getFormattedTrackObjects, isAllFieldsPresent} = require('../../lib/eventsInput');
 
 
@@ -13,7 +14,7 @@ const trackEvent = {
         reply();
 
         if (!isAllFieldsPresent(request.query)) {
-            return console.error('Not all arguments defined');
+            return log.warn('Not all arguments defined');
         }
 
         const appKey = request.query.app_key;
@@ -23,7 +24,7 @@ const trackEvent = {
                 appKey,
                 getFormattedTrackObjects(request.query, getAnalyticsData(request), moment.utc().format())
             ))
-            .catch(err => console.error('Track failed, due to error', err))
+            .catch(err => log.error('Track failed, due to error', err));
     }
 };
 
