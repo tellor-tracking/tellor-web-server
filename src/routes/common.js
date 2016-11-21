@@ -1,8 +1,12 @@
 const serveReactApp = {
     method: 'GET',
     path: '/{paths*}',
-    config: {auth: false},
+    config: {auth: {mode: 'optional'}},
     handler(request, reply) {
+        if (request.path !== '/login' && !request.auth.isAuthenticated) {
+            return reply.redirect('/login');
+        }
+
         reply.file('react/index.html');
     }
 };
