@@ -50,7 +50,7 @@ const removeApplication = {
 
         return db.authenticateApplication(id, request.payload.password)
             .then(() => db.removeApplication(id))
-            .then(() => reply({_id: id, isRemoved: true}));  // TODO -> isSuccessful
+            .then(() => reply({_id: id, isSuccessful: true}));
     })
 };
 

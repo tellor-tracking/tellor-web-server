@@ -6,7 +6,7 @@ function formatTrackObjectFactory(sdk, appId, appVersion, analytics, timestamp) 
     return (eventData) => {
         // TODO validate eventData (or better do it client side)
         return Object.assign(eventData, {displayName: eventData.name}, {meta: additionalData}, {appId}); // TODO implement data merging from client side and server side
-    }; // TODO add ability to specify event group
+    };
 
 }
 

@@ -156,6 +156,30 @@ describe('Api:Events:Output', function() {
         expect(stats3.totalCount).to.equal(5);
     });
 
+    it('should filter stats by ip filter when filter value is negative', async () => {
+        let ips = [['1111.222.33'], ['2222.444.555'], ['!00000.99999']];
+
+        await addFilters(db, appId, ips);
+
+        await db.insertTrackEvents(appId, getFakeEvents(10, ['One'], 1, appId, ips[0]));
+        await db.insertTrackEvents(appId, getFakeEvents(5, ['One'], 1, appId, ips[1]));
+
+        const {body: {eventsFilters}} = await chai.request(serverUri).get(`/api/applications/${appId}`);
+
+        const filterId0 = getFilter(eventsFilters, 'ip', ips[2][0]);
+
+        const res = await chai.request(serverUri).get(`/api/applications/${appId}/events`);
+        const event = res.body[0];
+
+        // make sure all events were registered
+        const {body: stats1} = await chai.request(serverUri).get(`/api/events/${event._id}/stats`);
+        expect(stats1.totalCount).to.equal(15);
+
+        // make sure filter 0 works
+        const {body: stats2} = await chai.request(serverUri).get(`/api/events/${event._id}/stats?filters=${filterId0}`);
+        expect(stats2.totalCount).to.equal(15);
+    });
+
 
     it('should filter stats by ip filter when multiple ips are specified in one filter', async () => {
         let ips = [['1111.222.33,4567.2222.333'], ['2222.444.555']];
@@ -214,6 +238,31 @@ describe('Api:Events:Output', function() {
         // make sure filter 1 works
         const {body: stats3} = await chai.request(serverUri).get(`/api/events/${event._id}/stats?filters=${filterId1}`);
         expect(stats3.totalCount).to.equal(5);
+    });
+
+
+    it('should filter stats by appVersion filter when it\'s negative', async () => {
+        let appVersions = [['1'], ['2a'], ['!4']];
+
+        await addFilters(db, appId, [], appVersions);
+
+        await db.insertTrackEvents(appId, getFakeEvents(10, ['One'], 1, appId, [1], appVersions[0]));
+        await db.insertTrackEvents(appId, getFakeEvents(5, ['One'], 1, appId, [1], appVersions[1]));
+
+        const {body: {eventsFilters}} = await chai.request(serverUri).get(`/api/applications/${appId}`);
+
+        const filterId0 = getFilter(eventsFilters, 'appVersion', appVersions[2][0]);
+
+        const res = await chai.request(serverUri).get(`/api/applications/${appId}/events`);
+        const event = res.body[0];
+
+        // make sure all events were registered
+        const {body: stats1} = await chai.request(serverUri).get(`/api/events/${event._id}/stats`);
+        expect(stats1.totalCount).to.equal(15);
+
+        // make sure filter 0 works
+        const {body: stats2} = await chai.request(serverUri).get(`/api/events/${event._id}/stats?filters=${filterId0}`);
+        expect(stats2.totalCount).to.equal(15);
     });
 
     it('should filter stats by appVersion filter when multiple versions are specified in one filter', async () => {

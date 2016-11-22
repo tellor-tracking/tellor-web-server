@@ -63,7 +63,7 @@ describe('Api:Applications', function() {
         const res =  await chai.request(serverUri).delete(`/api/applications/${appId}/remove`).send({password: 'TestPassword'});
 
         expect(res.body._id).to.equal(appId);
-        expect(res.body.isRemoved).to.be.true;
+        expect(res.body.isSuccessful).to.be.true;
 
         const appCol = db.getDb().collection('applications');
         const eventsFieldsCol = db.getDb().collection('eventsFields');
