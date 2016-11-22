@@ -10,7 +10,7 @@ module.exports = {
             name: 'tellor',
             script: __dirname + '/index.js',
             max_memory_restart: '6000M',
-            env_production: {
+            env: {
                 NODE_ENV: 'production'
             }
         }
