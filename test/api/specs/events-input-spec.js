@@ -105,7 +105,7 @@ describe('Api:Events:Input', function() {
         expect(stats.segmentation.isNice[0]).to.have.property('no').that.equals(1);
     });
 
-    it.only('should add logged event to count and segmentation stats by negative filters', async () =>{
+    it('should add logged event to count and segmentation stats by negative filters', async () =>{
         const {id: filterId} = await db.addEventsFilter(appId, {filterValue: 'appVersion=!3a'});
 
         await chai.request(serverUri).get(`/track?app_key=${appId}&app_version=3a&sdk=web&events=${JSON.stringify([{name: 'Test', segmentation: {isNice: 'yes'}}])}`);
