@@ -39,7 +39,7 @@ describe('Api:Events:Input', function() {
 
         expect(res).to.have.status(200);
 
-        await utils.sleep(100);
+        await utils.sleep(200);
 
         const events = await db.getEvents(appId);
         expect(events).to.have.length(1);
@@ -53,7 +53,7 @@ describe('Api:Events:Input', function() {
 
         expect(res).to.have.status(200);
 
-        await utils.sleep(100);
+        await utils.sleep(200);
 
         const events = await db.getEvents(appId);
         expect(events).to.have.length(0);
@@ -77,7 +77,7 @@ describe('Api:Events:Input', function() {
         await chai.request(serverUri).get(`/track?app_key=${appId}&app_version=1&sdk=web&events=${JSON.stringify([{name: 'Test', segmentation: {isNice: 'yes'}}])}`);
         await chai.request(serverUri).get(`/track?app_key=${appId}&app_version=1&sdk=web&events=${JSON.stringify([{name: 'Test', segmentation: {isNice: 'no'}}])}`);
 
-        await utils.sleep(100);
+        await utils.sleep(200);
 
         const events = await db.getEvents(appId);
         const eventId = events[0]._id;
@@ -95,13 +95,31 @@ describe('Api:Events:Input', function() {
         await chai.request(serverUri).get(`/track?app_key=${appId}&app_version=3a&sdk=web&events=${JSON.stringify([{name: 'Test', segmentation: {isNice: 'no'}}])}`);
         await chai.request(serverUri).get(`/track?app_key=${appId}&app_version=1&sdk=web&events=${JSON.stringify([{name: 'Test', segmentation: {isNice: 'no'}}])}`);
 
-        await utils.sleep(100);
+        await utils.sleep(200);
 
         const events = await db.getEvents(appId);
         const eventId = events[0]._id;
 
         const stats = await db.getEventStats(eventId, {filters: filterId});
         expect(stats.segmentation.isNice[0]).to.have.property('yes').that.equals(2);
+        expect(stats.segmentation.isNice[0]).to.have.property('no').that.equals(1);
+    });
+
+    it.only('should add logged event to count and segmentation stats by negative filters', async () =>{
+        const {id: filterId} = await db.addEventsFilter(appId, {filterValue: 'appVersion=!3a'});
+
+        await chai.request(serverUri).get(`/track?app_key=${appId}&app_version=3a&sdk=web&events=${JSON.stringify([{name: 'Test', segmentation: {isNice: 'yes'}}])}`);
+        await chai.request(serverUri).get(`/track?app_key=${appId}&app_version=3a&sdk=web&events=${JSON.stringify([{name: 'Test', segmentation: {isNice: 'yes'}}])}`);
+        await chai.request(serverUri).get(`/track?app_key=${appId}&app_version=3a&sdk=web&events=${JSON.stringify([{name: 'Test', segmentation: {isNice: 'no'}}])}`);
+        await chai.request(serverUri).get(`/track?app_key=${appId}&app_version=1&sdk=web&events=${JSON.stringify([{name: 'Test', segmentation: {isNice: 'no'}}])}`);
+
+        await utils.sleep(200);
+
+        const events = await db.getEvents(appId);
+        const eventId = events[0]._id;
+
+        const stats = await db.getEventStats(eventId, {filters: filterId});
+        expect(stats.segmentation.isNice[0]).to.have.not.property('yes');
         expect(stats.segmentation.isNice[0]).to.have.property('no').that.equals(1);
     });
 
