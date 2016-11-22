@@ -1,7 +1,7 @@
 const uuid = require('shortid');
 const {BadDataError} = require('../../lib/apiErrorHandler');
 const utils = require('../utils');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt-nodejs');
 
 const validateApplicationId = db => _id => {
     const collection = db().collection('applications');
