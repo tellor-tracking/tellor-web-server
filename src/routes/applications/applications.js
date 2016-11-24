@@ -41,8 +41,8 @@ const registerApplication = {
 };
 
 
-const removeApplication = {
-    path: '/api/applications/{id}/remove',
+const deleteApplication = {
+    path: '/api/applications/{id}/delete',
     method: 'DELETE',
     handler: handler((request, reply) => {
 
@@ -54,4 +54,4 @@ const removeApplication = {
     })
 };
 
-module.exports = [registerApplication, removeApplication, getApplications, getSingleApplication];
+module.exports = [registerApplication, deleteApplication, getApplications, getSingleApplication];

@@ -60,7 +60,7 @@ describe('Api:Applications', function() {
     it('should remove application if correct id and password is provided', async () =>{
         const {_id: appId} = await db.registerApplication('TestName', 'TestPassword');
         await db.insertTrackEvents(appId, getFakeEvents(30, 2, 5, appId));
-        const res =  await chai.request(serverUri).delete(`/api/applications/${appId}/remove`).send({password: 'TestPassword'});
+        const res =  await chai.request(serverUri).delete(`/api/applications/${appId}/delete`).send({password: 'TestPassword'});
 
         expect(res.body._id).to.equal(appId);
         expect(res.body.isSuccessful).to.be.true;
@@ -88,7 +88,7 @@ describe('Api:Applications', function() {
     it('should fail to remove application if incorrect id is provided', async () =>{
         await db.registerApplication('TestName', 'TestPassword');
         try {
-            await chai.request(serverUri).delete(`/api/applications/wrong/remove`).send({password: 'TestPassword'});
+            await chai.request(serverUri).delete(`/api/applications/wrong/delete`).send({password: 'TestPassword'});
             expect(1).to.equal(2); // should not be called
         } catch (e) {
             expect(e.message).to.be.equal('Unprocessable Entity');
@@ -99,7 +99,7 @@ describe('Api:Applications', function() {
     it('should fail to remove application if incorrect password is provided', async () =>{
         const {_id: appId} = await db.registerApplication('TestName', 'TestPassword');
         try {
-            await chai.request(serverUri).delete(`/api/applications/${appId}/remove`).send({password: 'TestWrong'});
+            await chai.request(serverUri).delete(`/api/applications/${appId}/delete`).send({password: 'TestWrong'});
             expect(1).to.equal(2); // should not be called
         } catch (e) {
             expect(e.message).to.be.equal('Unprocessable Entity');
