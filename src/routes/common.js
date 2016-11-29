@@ -21,4 +21,13 @@ const healthcheck = {
     }
 };
 
-module.exports = [serveReactApp, healthcheck];
+const webSdk = {
+    method: 'GET',
+    path: '/tellor.{fileEnd}',
+    config: {auth: false},
+    handler(request, reply) {
+        reply.file(`tellor.${request.params.fileEnd}`);
+    }
+};
+
+module.exports = [serveReactApp, healthcheck, webSdk];
