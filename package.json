@@ -6,7 +6,8 @@
   "license": "MIT",
   "scripts": {
     "start-dev": "./node_modules/.bin/nodemon",
-    "test": "cross-env NODE_ENV=test mocha --require babel-polyfill --compilers js:babel-register \"test/**/*-spec.js\" --report progress --globals serverUri --recursive --watch"
+    "test": "cross-env NODE_ENV=test mocha --require babel-polyfill --compilers js:babel-register \"test/**/*-spec.js\" --report progress --globals serverUri --recursive",
+    "test:watch": "cross-env NODE_ENV=test mocha --require babel-polyfill --compilers js:babel-register \"test/**/*-spec.js\" --report progress --globals serverUri --recursive --watch"
   },
   "dependencies": {
     "async": "^2.1.2",
