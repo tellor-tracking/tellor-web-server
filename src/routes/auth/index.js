@@ -19,4 +19,14 @@ const authenticate = {
     }
 };
 
-module.exports = [authenticate];
+const simpleAuthValidate = {
+    method: 'GET',
+    path: '/authcheck',
+    handler(request, reply) {
+        // this in an empty route, but under auth, so it can be used to validate from client side if user is authenticated
+
+        reply({})
+    }
+};
+
+module.exports = [authenticate, simpleAuthValidate];
