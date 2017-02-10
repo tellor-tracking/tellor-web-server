@@ -1,7 +1,7 @@
 const md5 = require('md5');
 const async = require('async');
 const moment = require('moment');
-const filtersLib =  require('../../lib/filters');
+const filtersLib = require('../../lib/filters');
 const log = require('../../../logging');
 
 function addGUIDs(appId, events) {

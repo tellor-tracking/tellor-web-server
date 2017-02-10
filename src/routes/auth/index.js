@@ -9,7 +9,6 @@ const authenticate = {
     handler(request, reply) {
         const {account, password} = request.payload;
 
-
         if (config.defaultUser !== account || config.defaultUserPassword !== password) {
             return reply(new Boom.badData('Bad credentials'));
         }
@@ -25,7 +24,7 @@ const simpleAuthValidate = {
     handler(request, reply) {
         // this in an empty route, but under auth, so it can be used to validate from client side if user is authenticated
 
-        reply({})
+        reply({});
     }
 };
 

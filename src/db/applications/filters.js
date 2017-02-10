@@ -30,6 +30,12 @@ const addEventsFilter = db => (appId, {filterValue}) => {
     }, {upsert: true}).then((res) => ({res, id}));
 };
 
+const editEventsFilter = db => (appId, filterId, filterValue) => {
+    const collection = db().collection('applications');
+    console.log('TODO');
+    // return collection.updateOne({_id: appId}, {$pull: {eventsFilters: {id: filterId}}});
+};
+
 const deleteEventsFilter = db => (appId, filterId) => {
     const collection = db().collection('applications');
     return collection.updateOne({_id: appId}, {$pull: {eventsFilters: {id: filterId}}});
@@ -44,6 +50,7 @@ const getFilters = db => appId => {
 
 module.exports = {
     addEventsFilter,
+    editEventsFilter,
     deleteEventsFilter,
     validateFilterId,
     getFilters
